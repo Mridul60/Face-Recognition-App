@@ -1,5 +1,6 @@
 import React from 'react';
 import {View, Text, Image, StyleSheet, Button} from 'react-native';
+import {Link} from "expo-router"
 
 export default function Index() {
     return (
