@@ -1,15 +1,18 @@
-import { Text, View } from "react-native";
+import { ImageBackground, StyleSheet } from "react-native";
 
 export default function Index() {
   return (
-    <View
-      style={{
-        flex: 1,
-        justifyContent: "center",
-        alignItems: "center",
-      }}
+    <ImageBackground
+      source={require('../assets/images/index-bg.png')}
+      style={styles.background}
     >
-      <Text>Geo - Face Attendance</Text>
-    </View>
+
+    </ImageBackground>
   );
 }
+
+const styles = StyleSheet.create({
+  background: {
+
+  }
+});
