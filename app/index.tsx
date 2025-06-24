@@ -1,5 +1,6 @@
 import React from 'react';
 import {View, Text, Image, StyleSheet, Button} from 'react-native';
+import 'react-native-gesture-handler';
 
 export default function Index() {
     return (
