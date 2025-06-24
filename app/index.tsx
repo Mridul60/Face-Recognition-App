@@ -1,18 +1,7 @@
-import { ImageBackground, StyleSheet } from "react-native";
+import { Redirect } from "expo-router";
+import React from "react";
 
 export default function Index() {
-  return (
-    <ImageBackground
-      source={require('../assets/images/index-bg.png')}
-      style={styles.background}
-    >
-
-    </ImageBackground>
-  );
+  return 
+    <Redirect href = "/views/login"/>;
 }
-
-const styles = StyleSheet.create({
-  background: {
-
-  }
-});
