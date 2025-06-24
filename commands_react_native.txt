@@ -1,0 +1,13 @@
+using webstorm ide
+docs: https://reactnative.dev/docs/environment-setup
+
+npx create-expo-app@latest ./
+npx expo start
+npm run reset-project
+
+npm install @react-navigation/native
+npx expo install react-native-screens react-native-safe-area-context react-native-gesture-handler react-native-reanimated
+npm install @react-navigation/native-stack
+
+npx expo install react-native-screens react-native-safe-area-context
+
