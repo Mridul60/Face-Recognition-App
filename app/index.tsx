@@ -47,7 +47,7 @@ const styles = StyleSheet.create({
     },
     section: {
         marginBottom: 20,
-        // backgroundColor: 'red'
+        // backgroundColor: 'red',
     },
     image: {
         width: 200,
