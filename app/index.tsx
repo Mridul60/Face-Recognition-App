@@ -9,7 +9,7 @@ export default function Index() {
         alignItems: "center",
       }}
     >
-      <Text>Geo Attendance</Text>
+      <Text>Geo - Face Attendance</Text>
     </View>
   );
 }
