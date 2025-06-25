@@ -13,3 +13,27 @@ npm install @react-navigation/native-stack
 
 npx expo install react-native-screens react-native-safe-area-context
 
+npx expo install expo-camera
+
+
+//backend-auth
+mkdir backend-auth
+cd backend-auth
+npm init -y
+npm install express cors mysql2 bcryptjs jsonwebtoken dotenv
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
