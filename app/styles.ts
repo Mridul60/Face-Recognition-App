@@ -1,5 +1,6 @@
 import {Dimensions, StyleSheet} from "react-native";
-const { width, height } = Dimensions.get('window');
+
+const {width, height} = Dimensions.get('window');
 const styles = StyleSheet.create({
     container: {
         flex: 1,
@@ -16,7 +17,8 @@ const styles = StyleSheet.create({
     },
     appName: {
         fontSize: 28,
-        fontWeight: 'bold'
+        fontWeight: 'bold',
+        marginBottom: 20,
     },
     appAbout: {
         fontSize: 22,
@@ -59,7 +61,6 @@ const styles = StyleSheet.create({
         borderColor: 'gray',
         borderRadius: 8,
         paddingHorizontal: 16,
-        marginTop: 20,
         marginBottom: 20,
         fontSize: Math.max(16, width * 0.04),
     },
@@ -86,6 +87,22 @@ const styles = StyleSheet.create({
     forgotText: {
         color: '#007AFF',
         fontSize: Math.max(14, width * 0.035),
+    },
+    cameraWrapper: {
+        width: '100%',
+        height: 300, // partial screen height
+        borderRadius: 16,
+        overflow: 'hidden',
+    },
+    camera: {
+        flex: 1,
+    },
+    registerButton: {
+        // flex: 1,
+        backgroundColor: 'green',
+        padding: 16,
+        borderRadius: 40,
+        alignItems: 'center',
     },
 });
 
