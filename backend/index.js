@@ -1,3 +1,6 @@
+//Node.js server created using Express.js framework
+// the work is to listen for HTTP requests like POST/login, GET/users...
+
 const express = require('express');
 const cors = require('cors');
 require('dotenv').config();

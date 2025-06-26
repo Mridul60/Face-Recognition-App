@@ -9,7 +9,7 @@ router.post('/register', (req, res) => {
         return res.status(400).json({ error: 'All fields are required.' });
     }
 
-    const query = 'INSERT INTO users (name, email, password) VALUES (?, ?, ?)';
+    const query = "INSERT INTO users (name, email, password) VALUES (?, ?, ?)";
     db.query(query, [name, email, password], (err, result) => {
         if (err) {
             console.error('MySQL Error:', err);
