@@ -233,8 +233,3 @@ const styles = StyleSheet.create({
   },
 });
 
-export const options = {
-  headerShown: false,
-  animation: 'slide_from_right',
-  animationDuration: 300,
-}
