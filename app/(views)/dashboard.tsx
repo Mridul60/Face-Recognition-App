@@ -26,11 +26,6 @@ export default function Dashboard() {
     longitudeDelta: 0.005,
   };
 
-  // Haversine formula to calculate distance in meters
-  interface LatLng {
-    latitude: number;
-    longitude: number;
-  }
 
   const getDistanceFromLatLonInMeters = (
     lat1: number,
@@ -81,7 +76,7 @@ export default function Dashboard() {
         setIsAtOffice(false);
       }
     })();
-  }, []);
+  }, [officeLocation.latitude, officeLocation.longitude]);
 
   const handleMarkAttendance = () => {
     if (isMarked) {
@@ -237,3 +232,9 @@ const styles = StyleSheet.create({
     color: '#ffffff',
   },
 });
+
+export const options = {
+  headerShown: false,
+  animation: 'slide_from_right',
+  animationDuration: 300,
+}

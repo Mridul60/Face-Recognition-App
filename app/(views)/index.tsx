@@ -1,7 +1,7 @@
 import { Redirect, useRouter } from 'expo-router';
 import React from 'react';
 import { Image, Text, TouchableOpacity, View } from 'react-native';
-import styles from './styles';
+import styles from '../styles';
 
 export default function Index() {
     let is_dev_mode = true;
@@ -26,7 +26,7 @@ export default function Index() {
     
                 <View>
                     <View style={styles.buttonRow}>
-                        <TouchableOpacity style={styles.button} onPress={() => router.push('/views/login')}>
+                        <TouchableOpacity style={styles.button} onPress={() => router.push('./login')}>
                             <Text style={styles.buttonText}>Login</Text>
                         </TouchableOpacity>
                         <TouchableOpacity style={styles.button}>
