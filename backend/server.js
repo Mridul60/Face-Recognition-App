@@ -1,4 +1,4 @@
-//Node.js server created using Express.js framework
+//This app starts a Node.js server created using Express.js framework
 // the work is to listen for HTTP requests like POST/login, GET/users...
 
 const express = require('express');
