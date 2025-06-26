@@ -2,20 +2,21 @@ import { Redirect, useRouter } from 'expo-router';
 import React from 'react';
 import { Image, Text, TouchableOpacity, View } from 'react-native';
 import styles from '../styles';
+import faceimg from '../../assets/images/face.png';
 
 export default function Index() {
     let is_dev_mode = true;
     const router = useRouter();
 
-    if (is_dev_mode) {
-        return <Redirect href='./dashboard' />;
-    }
-    else{
+    // if (is_dev_mode) {
+    //     return <Redirect href='/dashboard' />;
+    // }
+    // else{
         return (
             <View style={styles.container}>
                 <View style={styles.topSection}>
                     <Image
-                        source={require('../assets/images/face.png')}
+                        source={faceimg}
                         style={styles.image}
                     />
                     <Text style={styles.appName}>FRAT</Text>
@@ -46,4 +47,7 @@ export default function Index() {
         
     
             
-        }        
+        // }        
+export const options = {
+    headerShown: false,
+    };

@@ -1,24 +1,35 @@
-import React from "react";
+import React, { useState } from 'react';
 import { Image, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import styles from '../styles';
+import { registerUser } from '../viewmodels/register-viewmodel';
+import faceimg from '../../assets/images/face.png';
 
-export default function Login() {
-    const [email, setEmail] = React.useState('');
-    const [password, setPassword] = React.useState('');
-    const [showPassword, setShowPassword] = React.useState(false);
+
+export default function Register() {
+    const [fullName, setFullName] = useState('');
+    const [email, setEmail] = useState('');
+    const [password, setPassword] = useState('');
+    const [showPassword, setShowPassword] = useState(false);
     const togglePasswordVisibility = () => {
         setShowPassword(!showPassword);
-    };
-
+    }
     return (
         <View style={[styles.container, {justifyContent: 'flex-start'}]}>
             <View style={styles.topSection}>
                 <Image
-                    source={require('../assets/images/face.png')}
+                    source={faceimg}
                     style={styles.image}
                 />
-                <Text style={[styles.appName]}> Log in</Text>
+                <Text style={styles.appName}>Register</Text>
             </View>
+            <TextInput
+                style={styles.input}
+                placeholder="Full Name"
+                value={fullName}
+                onChangeText={setFullName}
+                keyboardType="default"
+                autoCapitalize="none"
+            />
             <TextInput
                 style={styles.input}
                 placeholder="Email"
@@ -39,19 +50,15 @@ export default function Login() {
                     <Text>{showPassword ? 'Hide' : 'Show'}</Text>
                 </TouchableOpacity>
             </View>
-            <TouchableOpacity style={styles.forgotPassword}>
-                <Text style={styles.forgotText}>Forgot Password?</Text>
+            <TouchableOpacity style={styles.registerButton} onPress={async () => {
+                const result = await registerUser(fullName, email, password);
+                alert(result.message);
+            }}
+            >
+                <Text style={styles.buttonText}>Register</Text>
             </TouchableOpacity>
-            <TouchableOpacity style={[styles.button, {flex: 0, margin: 30}]}>
-                <Text style={styles.buttonText}>Log in</Text>
-            </TouchableOpacity>
-            <View style={{flexDirection: 'row', justifyContent: 'center'}}>
-                <Text> New user?</Text>
-                <TouchableOpacity>
-                    <Text>Sign up</Text>
-                </TouchableOpacity>
-            </View>
-        </View>
 
+        </View>
     );
 }
+
