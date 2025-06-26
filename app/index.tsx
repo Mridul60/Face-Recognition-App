@@ -4,11 +4,11 @@ import { Image, Text, TouchableOpacity, View } from 'react-native';
 import styles from './styles';
 
 export default function Index() {
-    let is_dev_mode = false;
+    let is_dev_mode = true;
     const router = useRouter();
 
     if (is_dev_mode) {
-        return <Redirect href='/views/dashboard' />;
+        return <Redirect href='./dashboard' />;
     }
     else{
         return (
