@@ -1,8 +1,8 @@
 import React from "react";
-import { Image, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import {Image, Text, TextInput, TouchableOpacity, View} from 'react-native';
 import styles from '../styles';
 import faceimg from '../../assets/images/face.png';
-
+import {loginUser} from "@/app/viewmodels/login-viewmodel";
 
 export default function Login() {
     const [email, setEmail] = React.useState('');
@@ -44,7 +44,9 @@ export default function Login() {
             <TouchableOpacity style={styles.forgotPassword}>
                 <Text style={styles.forgotText}>Forgot Password?</Text>
             </TouchableOpacity>
-            <TouchableOpacity style={[styles.button, {flex: 0, margin: 30}]}>
+            <TouchableOpacity style={[styles.button, {flex: 0, margin: 30}]} onPress={async () => {
+                const result = await loginUser(email, password)
+            }}>
                 <Text style={styles.buttonText}>Log in</Text>
             </TouchableOpacity>
             <View style={{flexDirection: 'row', justifyContent: 'center'}}>
