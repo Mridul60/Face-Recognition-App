@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect,useRef } from 'react';
 import {
   View,
   Text,
@@ -10,7 +10,7 @@ import {
   SafeAreaView,
   ActivityIndicator,
 } from 'react-native';
-import MapView, { Marker, Circle } from 'react-native-maps';
+import MapView, { Marker, Circle,MapViewProps } from 'react-native-maps';
 import 'expo-location';
 import {
   installWebGeolocationPolyfill,
@@ -26,6 +26,7 @@ installWebGeolocationPolyfill();
 const { width, height } = Dimensions.get('window');
 
 const Dashboard = () => {
+  const mapRef = useRef<MapView>(null);
   type LocationType = {
     latitude: number;
     longitude: number;
@@ -129,17 +130,25 @@ const Dashboard = () => {
   const handlePunchAction = async () => {
     setIsLoading(true);
     const now = new Date();
-    const timeString = now.toLocaleString();
-    const newStatus = !isPunchedIn;
-
-    setIsPunchedIn(newStatus);
-    setLastPunchTime(timeString);
-
-    await AsyncStorage.setItem('punchStatus', JSON.stringify(newStatus));
-    await AsyncStorage.setItem('lastPunchTime', timeString);
-
-    setIsLoading(false);
-    Alert.alert('Success', `Punched ${newStatus ? 'In' : 'Out'} at ${timeString}`);
+    const timeString = now.toISOString(); // Use ISO string for reliability
+  
+    try {
+      const newStatus = !isPunchedIn;
+  
+      setIsPunchedIn(newStatus);
+      setLastPunchTime(timeString);
+  
+      await AsyncStorage.setItem('punchStatus', JSON.stringify(newStatus));
+      await AsyncStorage.setItem('lastPunchTime', timeString);
+  
+      console.log('Saved punch time:', timeString);
+  
+      Alert.alert('Success', `Punched ${newStatus ? 'In' : 'Out'} at ${new Date(timeString).toLocaleString()}`);
+    } catch (e) {
+      console.error('Error saving punch:', e);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -150,14 +159,14 @@ const Dashboard = () => {
       <View style={styles.header}>
         <Text style={styles.headerTitle}>Dashboard</Text>
         <View style={styles.headerRight}>
-          <Icon name='code' size={18} color="#fff" />
+          <Icon name='history' size={24} color="#fff" />
         </View>
       </View>
 
       {/* Map View */}
       <View style={styles.mapContainer}>
         {currentLocation ? (
-          <MapView style={styles.map} initialRegion={currentLocation} showsUserLocation>
+          <MapView ref={mapRef} style={styles.map} initialRegion={currentLocation} showsUserLocation>
             <Marker coordinate={officeLocation} pinColor="red" title="Office" />
             <Circle center={officeLocation} radius={officeRadius} strokeColor="#3B82F6" fillColor="rgba(59,130,246,0.1)" />
             <Marker coordinate={currentLocation} pinColor="blue" title="You" />
@@ -170,22 +179,34 @@ const Dashboard = () => {
         )}
         {/* Info Card */}
         <View style={styles.officeCard}>
-          <Text style={styles.officeLabel}>ASSIGN OFFICE NAME</Text>
-          <Text style={styles.officeName}>TIME GROUP</Text>
-        </View>
+                <Text style={styles.officeLabel}>Geekworkz Office</Text>
+                <TouchableOpacity onPress={() => {
+                  if (mapRef.current) {
+                    mapRef.current.animateToRegion(officeLocation, 800); // 800ms animation
+                  }
+                }}>
+                  <Text style={styles.officeName}>Good Morning</Text>
+                </TouchableOpacity>
+        </View> 
+
+
       </View>
 
       {/* Punch Section */}
       <View style={styles.punchSection}>
-        <TouchableOpacity
-          style={[styles.fingerprintCircle, !isWithinOffice && styles.punchButtonDisabled]}
+      <TouchableOpacity
+          style={[
+            styles.fingerprintCircle,
+            isPunchedIn && styles.punchedIn,
+            !isWithinOffice && styles.punchButtonDisabled
+          ]}
           onPress={handleBiometricAuth}
           disabled={!isWithinOffice || isLoading}
         >
           {isLoading ? (
             <ActivityIndicator size="small" color="#fff" />
           ) : (
-            <Icon name="fingerprint" size={28} color="#fff" />
+            <Icon name="fingerprint" size={28} color={isPunchedIn ? '#0xF4CE14':"#fff"} />
           )}
         </TouchableOpacity>
         <Text style={styles.fingerprintText}>PUNCH {isPunchedIn ? 'OUT' : 'IN'}</Text>
@@ -205,7 +226,7 @@ const Dashboard = () => {
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#fff' },
   header: {
-    backgroundColor: '#52796F',
+    backgroundColor: '#2F3E46',
     padding: 16,
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -221,7 +242,7 @@ const styles = StyleSheet.create({
 
   officeCard: {
     position: 'absolute',
-    bottom: 40,
+    bottom: 60,
     left: 20,
     right: 20,
     backgroundColor: 'rgba(255,255,255,0.9)',
@@ -239,11 +260,14 @@ const styles = StyleSheet.create({
 
   punchSection: {
     backgroundColor: '#F3F4F6',
-    flex: 0.07,
-    paddingVertical: 24,
+    flex: 0.3,
+    paddingVertical: 40,
     alignItems: 'center',
-    gap: 6,
+    gap: 8,
   },
+  punchedIn: {
+    backgroundColor: '#F4CE14', 
+  },  
   fingerprintCircle: {
     width: 56,
     height: 56,
