@@ -38,6 +38,11 @@
     ],
     "experiments": {
       "typedRoutes": true
+    },
+    "devDependencies": {
+      "@react-native-community/cli": "latest",
+      "@react-native-community/cli-platform-android": "latest",
+      "@react-native-community/cli-platform-ios": "latest"
     }
   }
 }
