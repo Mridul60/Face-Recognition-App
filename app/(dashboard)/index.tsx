@@ -12,13 +12,17 @@ import {
 } from 'react-native';
 import MapView, { Marker, Circle } from 'react-native-maps';
 import 'expo-location';
-import { installWebGeolocationPolyfill,requestBackgroundPermissionsAsync,getCurrentPositionAsync,Accuracy } from 'expo-location';
+import {
+  installWebGeolocationPolyfill,
+  requestForegroundPermissionsAsync,
+  getCurrentPositionAsync,
+  Accuracy,
+} from 'expo-location';
 import * as LocalAuthentication from 'expo-local-authentication';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 
 installWebGeolocationPolyfill();
-
 const { width, height } = Dimensions.get('window');
 
 const Dashboard = () => {
@@ -35,393 +39,232 @@ const Dashboard = () => {
   const [lastPunchTime, setLastPunchTime] = useState<string | null>(null);
   const [isWithinOffice, setIsWithinOffice] = useState(false);
 
-  // Office location coordinates (replace with actual office coordinates)
   const officeLocation = {
-    latitude:26.004846542169908, 
-    longitude:92.85265126568527,
+    latitude: 26.004846542169908,
+    longitude: 92.85265126568527,
     latitudeDelta: 0.01,
     longitudeDelta: 0.01,
   };
-
-  const officeRadius = 100; // meters
+  const officeRadius = 200;
 
   useEffect(() => {
     const init = async () => {
       try {
-        getCurrentLocation();
-        checkPunchStatus();
-      }catch (error){
-        console.error('Error in useEffect:',error)
+        await getCurrentLocation();
+        await checkPunchStatus();
+      } catch (e) {
+        console.error(e);
       }
     };
-    init()
+    init();
   }, []);
 
   const getCurrentLocation = async () => {
-    const { status } = await requestBackgroundPermissionsAsync();
+    const { status } = await requestForegroundPermissionsAsync();
     if (status !== 'granted') {
-      Alert.alert('Permission Denied', 'Location permission is required to use this feature.');
+      Alert.alert('Permission Denied', 'Location permission is required.');
       return;
     }
-    try{
-      const location = await getCurrentPositionAsync({
-        accuracy: Accuracy.Highest,
-      });
-      const { latitude, longitude } = location.coords;
-      setCurrentLocation({
-        latitude,
-        longitude,
-        latitudeDelta: 0.01,
-        longitudeDelta: 0.01,
-      });
-      checkIfWithinOffice(latitude, longitude);
-    }catch (error) {
-      console.error('Error getting current location:', error);
-      Alert.alert('Error', 'Unable to get current location. Please try again.');
-    }
-    
+
+    const location = await getCurrentPositionAsync({
+      accuracy: Accuracy.Highest,
+    });
+
+    const { latitude, longitude } = location.coords;
+    setCurrentLocation({
+      latitude,
+      longitude,
+      latitudeDelta: 0.01,
+      longitudeDelta: 0.01,
+    });
+    checkIfWithinOffice(latitude, longitude);
   };
 
-  const checkIfWithinOffice = (lat:number, lng:number) => {
-    const distance = calculateDistance(
-      lat,
-      lng,
-      officeLocation.latitude,
-      officeLocation.longitude
-    );
+  const checkIfWithinOffice = (lat: number, lng: number) => {
+    const R = 6371e3;
+    const toRad = (v: number) => (v * Math.PI) / 180;
+    const dLat = toRad(officeLocation.latitude - lat);
+    const dLon = toRad(officeLocation.longitude - lng);
+
+    const a =
+      Math.sin(dLat / 2) ** 2 +
+      Math.cos(toRad(lat)) *
+        Math.cos(toRad(officeLocation.latitude)) *
+        Math.sin(dLon / 2) ** 2;
+
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    const distance = R * c;
     setIsWithinOffice(distance <= officeRadius);
   };
 
-  const calculateDistance = (lat1:number , lon1:number, lat2:number, lon2:number) => {
-    const R = 6371e3; // Earth radius in meters
-    const toRad = (value: number): number => (value * Math.PI) / 180;
-
-    const dLat = toRad(lat2 - lat1);
-    const dLon = toRad(lon2 - lon1);
-    const a =
-      Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-      Math.cos(toRad(lat1)) *
-        Math.cos(toRad(lat2)) *
-        Math.sin(dLon / 2) *
-        Math.sin(dLon / 2);
-    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-    const distance = R * c;
-    return distance;
-  };
-
   const checkPunchStatus = async () => {
-    try {
-      const punchStatus = await AsyncStorage.getItem('punchStatus');
-      const lastPunch = await AsyncStorage.getItem('lastPunchTime');
-      
-      if (punchStatus) {
-        setIsPunchedIn(JSON.parse(punchStatus));
-      }
-      if (lastPunch) {
-        setLastPunchTime(lastPunch);
-      }
-    } catch (error) {
-      console.log('Error checking punch status:', error);
-    }
+    const punchStatus = await AsyncStorage.getItem('punchStatus');
+    const punchTime = await AsyncStorage.getItem('lastPunchTime');
+    if (punchStatus) setIsPunchedIn(JSON.parse(punchStatus));
+    if (punchTime) setLastPunchTime(punchTime);
   };
 
   const handleBiometricAuth = async () => {
     if (!isWithinOffice) {
-      Alert.alert(
-        'Location Error',
-        'You must be within the office premises to punch in/out'
-      );
+      Alert.alert('Location Error', 'You are outside the office boundary.');
       return;
     }
+
     const hasHardware = await LocalAuthentication.hasHardwareAsync();
     const isEnrolled = await LocalAuthentication.isEnrolledAsync();
+
     if (!hasHardware || !isEnrolled) {
-      return Alert.alert('Biometrics Unavailable', 'No biometric options available.');
+      return Alert.alert('Unavailable', 'Biometric auth not available.');
     }
 
     const result = await LocalAuthentication.authenticateAsync({
       promptMessage: `Punch ${isPunchedIn ? 'Out' : 'In'}`,
       fallbackLabel: 'Use PIN',
     });
+
     if (result.success) handlePunchAction();
     else Alert.alert('Authentication Failed');
   };
 
   const handlePunchAction = async () => {
     setIsLoading(true);
-    
-    try {
-      const now = new Date();
-      const timeString = now.toLocaleString();
-      
-      // Toggle punch status
-      const newPunchStatus = !isPunchedIn;
-      setIsPunchedIn(newPunchStatus);
-      setLastPunchTime(timeString);
-      
-      // Save to local storage
-      await AsyncStorage.setItem('punchStatus', JSON.stringify(newPunchStatus));
-      await AsyncStorage.setItem('lastPunchTime', timeString);
-      
-      // Here you would typically sync with your backend API
-      // await syncWithBackend(newPunchStatus, timeString, currentLocation);
-      
-      Alert.alert(
-        'Success',
-        `Successfully punched ${newPunchStatus ? 'in' : 'out'} at ${timeString}`
-      );
-    } catch (error) {
-      console.log('Punch action error:', error);
-      Alert.alert('Error', 'Failed to record punch. Please try again.');
-    } finally {
-      setIsLoading(false);
-    }
-  };
+    const now = new Date();
+    const timeString = now.toLocaleString();
+    const newStatus = !isPunchedIn;
 
-  const formatTime = (timeString:string) => {
-    if (!timeString) return 'No record';
-    return new Date(timeString).toLocaleString();
+    setIsPunchedIn(newStatus);
+    setLastPunchTime(timeString);
+
+    await AsyncStorage.setItem('punchStatus', JSON.stringify(newStatus));
+    await AsyncStorage.setItem('lastPunchTime', timeString);
+
+    setIsLoading(false);
+    Alert.alert('Success', `Punched ${newStatus ? 'In' : 'Out'} at ${timeString}`);
   };
 
   return (
     <SafeAreaView style={styles.container}>
-      <StatusBar barStyle="light-content" backgroundColor="#2c3e50" />
-      
+      <StatusBar barStyle="light-content" backgroundColor="#374151" />
+
       {/* Header */}
       <View style={styles.header}>
         <Text style={styles.headerTitle}>Dashboard</Text>
-        <TouchableOpacity onPress={getCurrentLocation}>
-          <Icon name="refresh" size={24} color="#fff" />
-        </TouchableOpacity>
+        <View style={styles.headerRight}>
+          <Icon name='code' size={18} color="#fff" />
+        </View>
       </View>
 
       {/* Map View */}
       <View style={styles.mapContainer}>
         {currentLocation ? (
-          <MapView
-            style={styles.map}
-            initialRegion={currentLocation}
-            showsUserLocation={true}
-            showsMyLocationButton={true}
-          >
-            {/* Office Location Marker */}
-            <Marker
-              coordinate={{
-                latitude: officeLocation.latitude,
-                longitude: officeLocation.longitude,
-              }}
-              title="Office Location"
-              description="Main Office"
-              pinColor="red"
-            />
-            
-            {/* Office Boundary Circle */}
-            <Circle
-              center={{
-                latitude: officeLocation.latitude,
-                longitude: officeLocation.longitude,
-              }}
-              radius={officeRadius}
-              strokeColor="rgba(52, 152, 219, 0.5)"
-              fillColor="rgba(52, 152, 219, 0.1)"
-            />
-            
-            {/* Current Location Marker */}
-            {currentLocation && (
-              <Marker
-                coordinate={currentLocation}
-                title="Your Location"
-                pinColor="blue"
-              />
-            )}
+          <MapView style={styles.map} initialRegion={currentLocation} showsUserLocation>
+            <Marker coordinate={officeLocation} pinColor="red" title="Office" />
+            <Circle center={officeLocation} radius={officeRadius} strokeColor="#3B82F6" fillColor="rgba(59,130,246,0.1)" />
+            <Marker coordinate={currentLocation} pinColor="blue" title="You" />
           </MapView>
         ) : (
           <View style={styles.loadingContainer}>
-            <ActivityIndicator size="large" color="#3498db" />
+            <ActivityIndicator size="large" color="#3B82F6" />
             <Text>Loading map...</Text>
           </View>
         )}
-      </View>
-
-      {/* Status Bar */}
-      <View style={styles.statusContainer}>
-        <View style={styles.statusItem}>
-          <Icon 
-            name="location-on" 
-            size={20} 
-            color={isWithinOffice ? '#27ae60' : '#e74c3c'} 
-          />
-          <Text style={[
-            styles.statusText,
-            { color: isWithinOffice ? '#27ae60' : '#e74c3c' }
-          ]}>
-            {isWithinOffice ? 'Within Office' : 'Outside Office'}
-          </Text>
-        </View>
-        
-        <View style={styles.statusItem}>
-          <Icon 
-            name="access-time" 
-            size={20} 
-            color={isPunchedIn ? '#27ae60' : '#95a5a6'} 
-          />
-          <Text style={[
-            styles.statusText,
-            { color: isPunchedIn ? '#27ae60' : '#95a5a6' }
-          ]}>
-            {isPunchedIn ? 'Punched In' : 'Punched Out'}
-          </Text>
+        {/* Info Card */}
+        <View style={styles.officeCard}>
+          <Text style={styles.officeLabel}>ASSIGN OFFICE NAME</Text>
+          <Text style={styles.officeName}>TIME GROUP</Text>
         </View>
       </View>
 
-      {/* Last Punch Time */}
-      {lastPunchTime && (
-        <View style={styles.lastPunchContainer}>
-          <Text style={styles.lastPunchLabel}>Last Action:</Text>
-          <Text style={styles.lastPunchTime}>{formatTime(lastPunchTime)}</Text>
-        </View>
-      )}
-
-      {/* Punch Button */}
-      <View style={styles.punchContainer}>
+      {/* Punch Section */}
+      <View style={styles.punchSection}>
         <TouchableOpacity
-          style={[
-            styles.punchButton,
-            !isWithinOffice && styles.punchButtonDisabled,
-            isPunchedIn && styles.punchButtonOut
-          ]}
+          style={[styles.fingerprintCircle, !isWithinOffice && styles.punchButtonDisabled]}
           onPress={handleBiometricAuth}
           disabled={!isWithinOffice || isLoading}
         >
           {isLoading ? (
-            <ActivityIndicator size="large" color="#fff" />
+            <ActivityIndicator size="small" color="#fff" />
           ) : (
-            <>
-              <Icon name="fingerprint" size={40} color="#fff" />
-              <Text style={styles.punchButtonText}>
-                Punch {isPunchedIn ? 'Out' : 'In'}
-              </Text>
-            </>
+            <Icon name="fingerprint" size={28} color="#fff" />
           )}
         </TouchableOpacity>
+        <Text style={styles.fingerprintText}>PUNCH {isPunchedIn ? 'OUT' : 'IN'}</Text>
+        <Text style={styles.timestampText}>
+          Last: {lastPunchTime ? new Date(lastPunchTime).toLocaleString() : 'None'}
+        </Text>
+      </View>
+
+      {/* Footer */}
+      <View style={styles.screenSizeFooter}>
+        <Text style={styles.screenSizeText}>{`${width} × ${height}`}</Text>
       </View>
     </SafeAreaView>
   );
 };
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#ecf0f1',
-  },
+  container: { flex: 1, backgroundColor: '#fff' },
   header: {
-    backgroundColor: '#2c3e50',
-    paddingHorizontal: 20,
-    paddingVertical: 15,
+    backgroundColor: '#52796F',
+    padding: 16,
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
   },
-  headerTitle: {
-    color: '#fff',
-    fontSize: 20,
-    fontWeight: 'bold',
-  },
-  mapContainer: {
-    flex: 1,
-    margin: 10,
-    borderRadius: 10,
-    overflow: 'hidden',
-    elevation: 5,
+  headerTitle: { fontSize: 18, color: '#fff', fontWeight: '600' },
+  headerRight: { flexDirection: 'row', alignItems: 'center', gap: 6 },
+  codeIcon: { color: '#fff', fontSize: 12, fontFamily: 'monospace', marginLeft: 4 },
+
+  mapContainer: { flex: 1 },
+  map: { flex: 1 },
+  loadingContainer: { flex: 1, justifyContent: 'center', alignItems: 'center' },
+
+  officeCard: {
+    position: 'absolute',
+    bottom: 40,
+    left: 20,
+    right: 20,
+    backgroundColor: 'rgba(255,255,255,0.9)',
+    padding: 10,
+    borderRadius: 8,
+    alignItems: 'center',
+    elevation: 4,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.25,
-    shadowRadius: 3.84,
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
   },
-  map: {
-    flex: 1,
-  },
-  loadingContainer: {
-    flex: 1,
-    justifyContent: 'center',
+  officeLabel: { fontSize: 10, color: '#888', textTransform: 'uppercase', letterSpacing: 1 },
+  officeName: { fontSize: 14, color: '#333', fontWeight: '600' },
+
+  punchSection: {
+    backgroundColor: '#F3F4F6',
+    flex: 0.07,
+    paddingVertical: 24,
     alignItems: 'center',
-    backgroundColor: '#fff',
+    gap: 6,
   },
-  statusContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-    paddingVertical: 15,
-    backgroundColor: '#fff',
-    marginHorizontal: 10,
-    marginBottom: 10,
-    borderRadius: 10,
-    elevation: 3,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.22,
-    shadowRadius: 2.22,
-  },
-  statusItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  statusText: {
-    marginLeft: 5,
-    fontSize: 14,
-    fontWeight: '600',
-  },
-  lastPunchContainer: {
-    backgroundColor: '#fff',
-    marginHorizontal: 10,
-    marginBottom: 10,
-    padding: 15,
-    borderRadius: 10,
-    elevation: 3,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.22,
-    shadowRadius: 2.22,
-  },
-  lastPunchLabel: {
-    fontSize: 12,
-    color: '#7f8c8d',
-    marginBottom: 5,
-  },
-  lastPunchTime: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#2c3e50',
-  },
-  punchContainer: {
-    paddingHorizontal: 20,
-    paddingBottom: 30,
-    paddingTop: 10,
-  },
-  punchButton: {
-    backgroundColor: '#27ae60',
-    paddingVertical: 20,
-    paddingHorizontal: 30,
-    borderRadius: 15,
+  fingerprintCircle: {
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    backgroundColor: '#354F52',
     alignItems: 'center',
     justifyContent: 'center',
-    elevation: 5,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.25,
-    shadowRadius: 3.84,
+    marginBottom: 8,
   },
-  punchButtonOut: {
-    backgroundColor: '#e74c3c',
-  },
+  fingerprintText: { fontSize: 14, color: '#374151', fontWeight: '600' },
+  timestampText: { fontSize: 12, color: '#6B7280' },
   punchButtonDisabled: {
-    backgroundColor: '#95a5a6',
+    backgroundColor: '#9CA3AF',
   },
-  punchButtonText: {
-    color: '#fff',
-    fontSize: 18,
-    fontWeight: 'bold',
-    marginTop: 10,
+
+  screenSizeFooter: {
+    backgroundColor: '#3B82F6',
+    paddingVertical: 4,
+    alignItems: 'center',
   },
+  screenSizeText: { color: '#fff', fontSize: 12, fontFamily: 'monospace' },
 });
 
 export default Dashboard;
