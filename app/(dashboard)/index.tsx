@@ -42,7 +42,7 @@ const Dashboard = () => {
 
   const officeLocation = {
     latitude: 26.004846542169908,
-    longitude: 92.85265126568527,
+    longitude: 93.85265126568527,
     latitudeDelta: 0.01,
     longitudeDelta: 0.01,
   };
@@ -166,7 +166,15 @@ const Dashboard = () => {
       {/* Map View */}
       <View style={styles.mapContainer}>
         {currentLocation ? (
-          <MapView ref={mapRef} style={styles.map} initialRegion={currentLocation} showsUserLocation>
+          <MapView ref={mapRef} style={styles.map} initialRegion={currentLocation} showsUserLocation onMapReady={() => {
+            if (mapRef.current) {
+              mapRef.current.animateToRegion({
+                ...currentLocation,
+                latitudeDelta: 0.01,
+                longitudeDelta: 0.01,
+              }, 800); // 800ms animation
+            }
+          }}>
             <Marker coordinate={officeLocation} pinColor="red" title="Office" />
             <Circle center={officeLocation} radius={officeRadius} strokeColor="#3B82F6" fillColor="rgba(59,130,246,0.1)" />
             <Marker coordinate={currentLocation} pinColor="blue" title="You" />
