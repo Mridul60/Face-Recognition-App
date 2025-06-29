@@ -1,12 +1,23 @@
-import { Stack } from "expo-router";
-import React from "react";
+import { Stack } from 'expo-router';
+import { StatusBar, Platform, View } from 'react-native';
+import React from 'react';
 
-export default function RootLayout() {
-  return <Stack />;
-}
+export default function DashboardLayout() {
+  const topPadding = Platform.OS === 'android' ? StatusBar.currentHeight ?? 24 : 0;
 
-export const options = {
-  headerShown: false,
-  animation: 'slide_from_right',
-  animationDuration: 300,
+  return (
+    <>
+      {/* Show translucent StatusBar */}
+      <StatusBar translucent backgroundColor="transparent" barStyle="dark-content" />
+
+      {/* Wrap your layout with manual top padding to avoid push-down */}
+      <View style={{ flex: 1, paddingTop: topPadding }}>
+        <Stack
+          screenOptions={{
+            headerShown: false,
+          }}
+        />
+      </View>
+    </>
+  );
 }
