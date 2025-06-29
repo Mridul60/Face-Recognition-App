@@ -223,10 +223,10 @@ const Dashboard = () => {
         </Text>
       </View>
 
-      {/* Footer */}
+      {/* Footer
       <View style={styles.screenSizeFooter}>
         <Text style={styles.screenSizeText}>{`${width} × ${height}`}</Text>
-      </View>
+      </View> */}
     </SafeAreaView>
   );
 };
