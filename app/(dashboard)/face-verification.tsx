@@ -34,16 +34,20 @@ export const BiometricScanScreen = () => {
             style={styles.camera}
             type={CameraType.front}
           /> */}
+
+            <Animatable.View
+              animation="pulse"
+              easing="ease-in-out"
+              iterationCount="infinite"
+              duration={1200}
+              style={styles.pulseOval}
+            />
+
+            <View style={styles.notchTop} />
+            <View style={styles.notchBottom} />
+
           <View style={styles.ovalMask} pointerEvents="none" />
-          
-           {/* Spinning effect */}
-         <Animatable.View
-            animation="rotate"
-            easing="linear"
-            iterationCount="infinite"
-            duration={2000}
-            style={styles.spinner}
-          />
+
         </View>
 
         
@@ -104,23 +108,40 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     overflow: 'hidden',
     borderRadius: OVAL_WIDTH / 2,
-    backgroundColor: '#000',
+    backgroundColor: '#fff',
     position: 'relative',
   },  
-  spinner: {
+  pulseOval: {
     position: 'absolute',
-    top: 0,
-    left: 0,
-    width: OVAL_WIDTH,
-    height: OVAL_HEIGHT,
-    borderRadius: 200, // Height is taller for oval
-    borderWidth: 4,
-    borderTopColor: '#2DD4BF',
-    borderRightColor: 'transparent',
-    borderBottomColor: 'transparent',
-    borderLeftColor: 'transparent',
-    zIndex: 2,
+    width: OVAL_WIDTH - 100, // slightly smaller than mask
+    height: OVAL_HEIGHT - 70,
+    borderRadius: 210, // keep this high to simulate oval
+    borderWidth: 2,
+    borderColor: '#2DD4BF',
+    backgroundColor: 'rgba(45, 212, 191, 0.07)',
+    zIndex: 1,
   },
+notchTop: {
+  position: 'absolute',
+  top: 8,
+  width: 60,
+  height: 4,
+  backgroundColor: '#2DD4BF',
+  borderRadius: 2,
+  zIndex: 10,
+},
+
+notchBottom: {
+  position: 'absolute',
+  bottom: 8,
+  width: 60,
+  height: 4,
+  backgroundColor: '#2DD4BF',
+  borderRadius: 2,
+  zIndex: 10,
+},
+
+  
   
   camera: {
     width: OVAL_WIDTH,
@@ -131,7 +152,7 @@ const styles = StyleSheet.create({
     width: OVAL_WIDTH,
     height: OVAL_HEIGHT,
     borderWidth: 4,
-    borderColor: '#2DD4BF',
+    borderColor: '#10877d',
     borderRadius: OVAL_WIDTH / 2,
   },
   card: {
