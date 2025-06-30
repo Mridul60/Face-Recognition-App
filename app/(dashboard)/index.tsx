@@ -41,8 +41,8 @@ const Dashboard = () => {
   const [isWithinOffice, setIsWithinOffice] = useState(false);
 
   const officeLocation = {
-    latitude: 26.004846542169908,
-    longitude: 93.85265126568527,
+    latitude: 26.138415478242372,
+    longitude: 91.80020770491883,
     latitudeDelta: 0.01,
     longitudeDelta: 0.01,
   };

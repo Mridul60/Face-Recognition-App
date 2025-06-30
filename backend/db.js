@@ -1,5 +1,6 @@
+const dotenv = require('dotenv'); //for own configuration environment (like db, pass)
+dotenv.config();
 const mysql = require('mysql2');
-require('dotenv').config(); //for own configuration environment (like db pass)
 
 //connection to db with credentials
 const connection = mysql.createConnection({
@@ -8,6 +9,8 @@ const connection = mysql.createConnection({
     password: process.env.DB_PASSWORD,
     database: process.env.DB_NAME,
 });
+
+console.log('ENV:', process.env.DB_USER, process.env.DB_PASSWORD, process.env.DB_NAME);
 
 //try to connect
 connection.connect(err => {
