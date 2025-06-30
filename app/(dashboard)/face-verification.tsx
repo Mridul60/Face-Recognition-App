@@ -1,26 +1,49 @@
-import React from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import {
-  View,
-  Text,
-  StyleSheet,
-  TouchableOpacity,
-  Dimensions,
+  View, Text, TouchableOpacity, StyleSheet, Dimensions
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import * as Animatable from 'react-native-animatable';
+import { CameraView, useCameraPermissions } from 'expo-camera';
 
 const { width } = Dimensions.get('window');
 const OVAL_WIDTH = 260;
 const OVAL_HEIGHT = 340;
 
 export const BiometricScanScreen = () => {
+  const [permission, requestPermission] = useCameraPermissions();
+  const cameraRef = useRef<CameraView | null>(null);
+
+  useEffect(() => {
+    if (!permission) requestPermission();
+  }, [permission]);
+
+  if (!permission || !permission.granted) {
+    return (
+      <View style={styles.centered}>
+        <Text>No camera access</Text>
+        <TouchableOpacity onPress={requestPermission} style={styles.scanButton}>
+          <Text style={styles.scanButtonText}>Grant Permission</Text>
+        </TouchableOpacity>
+      </View>
+    );
+  }
+
+  const takePhoto = async () => {
+    if (cameraRef.current) {
+      const photo = await cameraRef.current.takePictureAsync({ quality: 0.7, base64: true });
+      console.log('Captured photo:', photo.uri);
+      // TODO: send photo.base64 or URI to your backend for face recognition
+    }
+  };
+
   return (
     <View style={styles.container}>
       {/* Header */}
       <View style={styles.header}>
         <Text style={styles.headerTitle}>Facial Scan</Text>
         <TouchableOpacity style={styles.closeButton}>
-          <Ionicons name="close" size={20} color="#ffffff" />
+          <Ionicons name="close" size={20} color="#fff" />
         </TouchableOpacity>
       </View>
 
@@ -28,9 +51,13 @@ export const BiometricScanScreen = () => {
       <View style={styles.content}>
         <Text style={styles.title}>Align Your Face</Text>
 
-        {/* Face Scan Area */}
+        {/* Oval scan area */}
         <View style={styles.scanArea}>
-          {/* Pulsing focus effect */}
+          <CameraView
+            ref={cameraRef}
+            style={StyleSheet.absoluteFill}
+            facing={'front'}
+          />
           <Animatable.View
             animation="pulse"
             easing="ease-in-out"
@@ -38,23 +65,10 @@ export const BiometricScanScreen = () => {
             duration={1200}
             style={styles.dottedOval}
           />
-
-          {/* Dotted oval face sketch */}
-          {/* <View style={styles.dottedOval} /> */}
-
-          {/* Notches
-          <Animatable.View animation="fadeIn" iterationCount="infinite" duration={1600} style={styles.notchTop} />
-          <Animatable.View animation="fadeIn" iterationCount="infinite" duration={1600} style={styles.notchBottom} />
-          <Animatable.View animation="fadeIn" iterationCount="infinite" duration={1600} style={styles.notchLeft} />
-          <Animatable.View animation="fadeIn" iterationCount="infinite" duration={1600} style={styles.notchRight} /> */}
-
-          {/* Corner lines */}
           <View style={styles.cornerTopLeft} />
           <View style={styles.cornerTopRight} />
           <View style={styles.cornerBottomLeft} />
           <View style={styles.cornerBottomRight} />
-
-          {/* Solid oval outline */}
           <View style={styles.ovalBorder} pointerEvents="none" />
         </View>
 
@@ -66,7 +80,7 @@ export const BiometricScanScreen = () => {
         </View>
 
         {/* Scan Button */}
-        <TouchableOpacity style={styles.scanButton}>
+        <TouchableOpacity style={styles.scanButton} onPress={takePhoto}>
           <Text style={styles.scanButtonText}>SCAN</Text>
         </TouchableOpacity>
       </View>
@@ -75,6 +89,11 @@ export const BiometricScanScreen = () => {
 };
 
 const styles = StyleSheet.create({
+  centered: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
   container: {
     flex: 1,
     backgroundColor: '#ffffff',
@@ -129,7 +148,7 @@ const styles = StyleSheet.create({
     position: 'absolute',
     width: OVAL_WIDTH - 60,
     height: OVAL_HEIGHT - 80,
-    borderRadius: 999,
+    borderRadius: OVAL_WIDTH / 2,
     borderWidth: 1.5,
     borderColor: '#2DD4BF',
     backgroundColor: 'rgba(45, 212, 191, 0.08)',
