@@ -7,12 +7,11 @@ export const loginUser = async (
     }
 
     try {
-        const response = await fetch('http://192.168.195.5:3000/api/auth/login', {
+        const response = await fetch('http://192.168.195.5:9000/auth/login', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ email, password })
         });
-
 
         const data = await response.json();
 
@@ -20,7 +19,6 @@ export const loginUser = async (
             return {
                 success: true,
                 message: 'Login successful!',
-                token: data.token, // assuming your backend sends back a JWT token
             };
         } else {
             return { success: false, message: data.message || 'Login failed.' };

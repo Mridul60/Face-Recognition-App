@@ -10,8 +10,6 @@ const connection = mysql.createConnection({
     database: process.env.DB_NAME,
 });
 
-console.log('ENV:', process.env.DB_USER, process.env.DB_PASSWORD, process.env.DB_NAME);
-
 //try to connect
 connection.connect(err => {
     if (err) throw err;

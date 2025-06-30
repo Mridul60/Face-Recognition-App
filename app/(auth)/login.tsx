@@ -91,13 +91,6 @@ export default function Login() {
                     <Text style={styles.buttonText}>Log in</Text>
                 )}
             </TouchableOpacity>
-
-            <View style={{ flexDirection: 'row', justifyContent: 'center' }}>
-                <Text> New user?</Text>
-                <TouchableOpacity>
-                    <Text>Sign up</Text>
-                </TouchableOpacity>
-            </View>
         </View>
     );
 }

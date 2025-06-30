@@ -4,14 +4,14 @@ const express = require('express');
 const app = express();
 const port = 3000;
 
-//for cross-platform
+//Enable Cross Origin Resource Sharing
 const cors = require('cors');
 app.use(cors());
-// app.use(express.json());
 
+//for parsing incoming JSON requests
 app.use(express.json());
 
-// import router file for auth (API Routes)
+// Import authentication routes and mount them under /api/auth
 const authRoutes = require('./routes/authRoutes');
 app.use('/api/auth', authRoutes);
 
