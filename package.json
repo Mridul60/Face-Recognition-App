@@ -6,9 +6,7 @@
     "start": "expo start --dev-client",
    
     "dev": "nodemon backend/app.js",
-=======
     "start": "expo start --dev-client",
->>>>>>> 64ef84f (Update package dependencies and modify SQL commands)
 
     "reset-project": "node ./scripts/reset-project.js",
     "android": "expo run:android",
@@ -33,10 +31,7 @@
     "cors": "^2.8.5",
     "dotenv": "^16.5.0",
     "expo": "53.0.13",
-<<<<<<< HEAD
     "expo-app-loading": "^1.0.3",
-=======
->>>>>>> 64ef84f (Update package dependencies and modify SQL commands)
     "expo-blur": "~14.1.5",
     "expo-camera": "~16.1.9",
     "expo-constants": "~17.1.6",
@@ -76,9 +71,6 @@
     "react-native-safe-area-context": "5.4.0",
     "react-native-screens": "~4.11.1",
     "react-native-svg": "15.11.2",
-<<<<<<< HEAD
-=======
->>>>>>> 64ef84f (Update package dependencies and modify SQL commands)
     "react-native-vector-icons": "^10.2.0",
     "react-native-vision-camera": "^4.7.0",
     "react-native-web": "~0.20.0",
