@@ -4,6 +4,7 @@ import styles from '../styles';
 import faceimage from '../../assets/images/face.png';
 import { loginUser } from '../viewmodels/login-viewmodel';
 import { useRouter } from "expo-router";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 export default function Login() {
     const [email, setEmail] = React.useState('');
@@ -29,7 +30,28 @@ export default function Login() {
         setIsLoading(false);
 
         if (result.success) {
-            router.replace('/(dashboard)'); // ✅ this points to /app/(dashboard)/index.tsx
+            // Get stored userId
+            const userId = await AsyncStorage.getItem('userId');
+            console.log("userid in login: ", userId);
+            if (!userId) {
+                setErrorMessage('Something went wrong. Please try again.');
+                return;
+            }
+
+            // Check if facial descriptor exists
+            try {
+                const checkRes = await fetch(`http://192.168.195.5:9000/facial/check/${userId}`);
+                const checkData = await checkRes.json();
+
+                if (checkRes.ok && checkData.exists) {
+                    router.replace('/(dashboard)');
+                } else {
+                    router.replace('/face-verification');
+                }
+            } catch (error) {
+                console.error('Descriptor check failed:', error);
+                setErrorMessage('Server error while checking facial data.');
+            }
         } else {
             setErrorMessage(result.message);
         }
