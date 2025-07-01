@@ -1,6 +1,3 @@
-// const { generateToken } = require('../../util/token');
-// const { checkPassword } = require('../../util/password');
-// const path = require('path');
 const dotenv = require('dotenv').config({});
 const Employee = require('../../models/Employee'); // path based on your structure
 
