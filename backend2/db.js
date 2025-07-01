@@ -1,5 +1,6 @@
+const dotenv = require('dotenv'); //for own configuration environment (like db, pass)
+dotenv.config();
 const mysql = require('mysql2');
-require('dotenv').config(); //for own configuration environment (like db pass)
 
 //connection to db with credentials
 const connection = mysql.createConnection({
