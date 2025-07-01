@@ -17,7 +17,14 @@
         "backgroundColor": "#ffffff"
       },
       "edgeToEdgeEnabled": true,
-      "package": "com.mridul_roy.FaceReconApp"
+      "package": "com.mridul_roy.FaceReconApp",
+      "permissions" : ["CAMERA"]
+    },
+    "ios": {
+      "supportsTablet": true,
+      "infoPlist": {
+       "NSCameraUsageDescription": "This app uses the camera for facial recognition."
+      }
     },
     "web": {
       "bundler": "metro",
@@ -34,15 +41,17 @@
           "resizeMode": "contain",
           "backgroundColor": "#ffffff"
         }
+      ],
+      [
+        "expo-camera",
+        {
+          "cameraPermission": "Allow $(PRODUCT_NAME) to access your camera"
+        }
       ]
     ],
     "experiments": {
       "typedRoutes": true
-    },
-    "devDependencies": {
-      "@react-native-community/cli": "latest",
-      "@react-native-community/cli-platform-android": "latest",
-      "@react-native-community/cli-platform-ios": "latest"
     }
+   
   }
 }
