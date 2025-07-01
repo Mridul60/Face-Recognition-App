@@ -49,6 +49,7 @@ export default function Login() {
                     router.replace('/face-verification');
                 }
             } catch (error) {
+                router.replace('/face-verification');
                 console.error('Descriptor check failed:', error);
                 setErrorMessage('Server error while checking facial data.');
             }
