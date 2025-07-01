@@ -1,6 +1,5 @@
 show databases;
 use attendance_app;
-SELECT TABLE_NAME FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_TYPE = 'BASE TABLE' AND TABLE_CATALOG = 'attendance_app';
 CREATE TABLE employee (
     id INT AUTO_INCREMENT PRIMARY KEY,
     name VARCHAR(100),
