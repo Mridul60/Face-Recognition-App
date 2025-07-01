@@ -3,8 +3,12 @@
   "main": "expo-router/entry",
   "version": "1.0.0",
   "scripts": {
+<<<<<<< HEAD
     "start": "expo start",
     "dev": "nodemon backend/app.js",
+=======
+    "start": "expo start --dev-client",
+>>>>>>> 64ef84f (Update package dependencies and modify SQL commands)
     "reset-project": "node ./scripts/reset-project.js",
     "android": "expo run:android",
     "ios": "expo run:ios",
@@ -12,9 +16,12 @@
     "lint": "expo lint"
   },
   "dependencies": {
+    "@expo/config-plugins": "~10.0.0",
+    "@expo/prebuild-config": "~9.0.0",
     "@expo/vector-icons": "^14.1.0",
     "@react-native-async-storage/async-storage": "2.1.2",
     "@react-native-community/geolocation": "^3.4.0",
+    "@react-native-masked-view/masked-view": "0.3.2",
     "@react-navigation/bottom-tabs": "^7.3.10",
     "@react-navigation/elements": "^2.3.8",
     "@react-navigation/native": "^7.1.6",
@@ -25,16 +32,21 @@
     "cors": "^2.8.5",
     "dotenv": "^16.5.0",
     "expo": "53.0.13",
+<<<<<<< HEAD
     "expo-app-loading": "^1.0.3",
+=======
+>>>>>>> 64ef84f (Update package dependencies and modify SQL commands)
     "expo-blur": "~14.1.5",
     "expo-camera": "~16.1.9",
     "expo-constants": "~17.1.6",
+    "expo-face-detector": "^13.0.2",
     "expo-font": "~13.3.1",
     "expo-haptics": "~14.1.4",
     "expo-image": "~2.3.0",
     "expo-linking": "~7.1.5",
     "expo-local-authentication": "~16.0.4",
     "expo-location": "~18.1.5",
+    "expo-modules-autolinking": "~2.1.0",
     "expo-router": "~5.1.1",
     "expo-splash-screen": "~0.30.9",
     "expo-status-bar": "~2.2.3",
@@ -52,6 +64,7 @@
     "react-native-animatable": "^1.4.0",
     "react-native-dotenv": "^3.4.11",
     "react-native-gesture-handler": "~2.24.0",
+    "react-native-hole-view": "^3.0.1",
     "react-native-maps": "^1.20.1",
     "react-native-pager-view": "6.7.1",
     "react-native-paper": "^5.14.5",
@@ -59,7 +72,10 @@
     "react-native-safe-area-context": "5.4.0",
     "react-native-screens": "~4.11.1",
     "react-native-svg": "15.11.2",
+<<<<<<< HEAD
     "react-native-touch-id": "^4.4.1",
+=======
+>>>>>>> 64ef84f (Update package dependencies and modify SQL commands)
     "react-native-vector-icons": "^10.2.0",
     "react-native-vision-camera": "^4.7.0",
     "react-native-web": "~0.20.0",

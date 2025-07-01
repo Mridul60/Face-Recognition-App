@@ -62,14 +62,15 @@ export const BiometricScanScreen = () => {
             animation="pulse"
             easing="ease-in-out"
             iterationCount="infinite"
-            duration={1200}
+            duration={1400}
             style={styles.dottedOval}
           />
+          <View style={styles.ovalBorder} pointerEvents = "none" />
+
           <View style={styles.cornerTopLeft} />
           <View style={styles.cornerTopRight} />
           <View style={styles.cornerBottomLeft} />
           <View style={styles.cornerBottomRight} />
-          <View style={styles.ovalBorder} pointerEvents="none" />
         </View>
 
         {/* Instruction */}
@@ -131,7 +132,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     backgroundColor: '#fff',
     borderRadius: OVAL_WIDTH / 2,
-    overflow: 'visible',
+    overflow: 'hidden',
     position: 'relative',
   },
   pulseOverlay: {
@@ -160,9 +161,9 @@ const styles = StyleSheet.create({
     width: OVAL_WIDTH,
     height: OVAL_HEIGHT,
     borderRadius: OVAL_WIDTH / 2,
-    borderWidth: 4,
+    borderWidth: 3,
     borderColor: '#10877d',
-    zIndex: 4,
+    zIndex: 3,
   },
   // notchTop: {
   //   position: 'absolute',
