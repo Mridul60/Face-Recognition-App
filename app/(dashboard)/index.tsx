@@ -10,23 +10,25 @@ import {
     SafeAreaView,
     ActivityIndicator,
 } from 'react-native';
-import MapView, {Marker, Circle, MapViewProps} from 'react-native-maps';
-import 'expo-location';
+import MapView, {Marker, Circle} from 'react-native-maps';
 import {
     installWebGeolocationPolyfill,
     requestForegroundPermissionsAsync,
     getCurrentPositionAsync,
     Accuracy,
 } from 'expo-location';
+import AttendanceHistoryModal from './AttendanceHistoryModal'; // Adjust path as needed
 import * as LocalAuthentication from 'expo-local-authentication';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import {router} from "expo-router";
 
 installWebGeolocationPolyfill();
-const {width, height} = Dimensions.get('window');
+Dimensions.get('window');
 
 const Dashboard = () => {
+    const [showAttendanceHistory, setShowAttendanceHistory] = useState(false);
+
     const mapRef = useRef<MapView>(null);
     type LocationType = {
         latitude: number;
@@ -49,18 +51,7 @@ const Dashboard = () => {
     };
     const officeRadius = 200;
 
-    useEffect(() => {
-        const init = async () => {
-            try {
-                await getCurrentLocation();
-                await checkPunchStatus();
-            } catch (e) {
-                console.error(e);
-            }
-        };
-        init();
-    }, []);
-
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     const getCurrentLocation = async () => {
         const {status} = await requestForegroundPermissionsAsync();
         if (status !== 'granted') {
@@ -81,6 +72,18 @@ const Dashboard = () => {
         });
         checkIfWithinOffice(latitude, longitude);
     };
+
+    useEffect(() => {
+        const init = async () => {
+            try {
+                await getCurrentLocation();
+                await checkPunchStatus();
+            } catch (e) {
+                console.error(e);
+            }
+        };
+        init();
+    }, [getCurrentLocation]);
 
     const checkIfWithinOffice = (lat: number, lng: number) => {
         const R = 6371e3;
@@ -140,6 +143,52 @@ const Dashboard = () => {
         }
     };
 
+    const savePunchToHistory = async (punchType: string, timestamp: string | number | Date) => {
+    try {
+        const existingData = await AsyncStorage.getItem('attendanceHistory');
+        let attendanceHistory = existingData ? JSON.parse(existingData) : [];
+        
+        const today = new Date(timestamp);
+        const dateString = today.toLocaleDateString('en-GB'); // DD/MM/YYYY format
+        const timeString = today.toLocaleTimeString('en-US', {
+            hour: 'numeric',
+            minute: '2-digit',
+            hour12: true
+        });
+        
+        // Check if there's already an entry for today
+        const todayIndex = attendanceHistory.findIndex((record: { date: string; }) => record.date === dateString);
+        
+        if (todayIndex >= 0) {
+            // Update existing entry
+            if (punchType === 'in') {
+                attendanceHistory[todayIndex].inTime = timeString;
+                attendanceHistory[todayIndex].status = 'Present';
+            } else {
+                attendanceHistory[todayIndex].outTime = timeString;
+            }
+        } else {
+            // Create new entry
+            const newEntry = {
+                id: Date.now(),
+                date: dateString,
+                day: today.toLocaleDateString('en-US', { weekday: 'short' }),
+                inTime: punchType === 'in' ? timeString : null,
+                outTime: punchType === 'out' ? timeString : null,
+                status: 'Present',
+                isToday: true
+            };
+            attendanceHistory.unshift(newEntry); // Add to beginning
+        }
+        
+        await AsyncStorage.setItem('attendanceHistory', JSON.stringify(attendanceHistory));
+    } catch (error) {
+        console.error('Error saving punch to history:', error);
+    }
+};
+
+    // Function to handle punch action
+
     const handlePunchAction = async () => {
         setIsLoading(true);
         const now = new Date();
@@ -153,6 +202,10 @@ const Dashboard = () => {
 
             await AsyncStorage.setItem('punchStatus', JSON.stringify(newStatus));
             await AsyncStorage.setItem('lastPunchTime', timeString);
+            
+            // Save to attendance history
+            await savePunchToHistory(newStatus ? 'in' : 'out', timeString);
+
 
             console.log('Saved punch time:', timeString);
 
@@ -172,7 +225,12 @@ const Dashboard = () => {
             <View style={styles.header}>
                 <Text style={styles.headerTitle}>Dashboard</Text>
                 <View style={styles.headerRight}>
-                    <Icon name='history' size={24} color="#fff"/>
+                    <TouchableOpacity 
+                            onPress={() => setShowAttendanceHistory(true)}
+                            style={styles.historyButton}
+                        >
+                            <Icon name='history' size={24} color="#fff"/>
+                    </TouchableOpacity>
                 </View>
             </View>
 
@@ -192,7 +250,7 @@ const Dashboard = () => {
                         <Marker coordinate={officeLocation} pinColor="red" title="Office"/>
                         <Circle center={officeLocation} radius={officeRadius} strokeColor="#3B82F6"
                                 fillColor="rgba(59,130,246,0.1)"/>
-                        <Marker coordinate={currentLocation} pinColor="blue" title="You"/>
+                        <Marker coordinate={currentLocation} pinColor='#52796f' title="You"/>
                     </MapView>
                 ) : (
                     <View style={styles.loadingContainer}>
@@ -242,6 +300,10 @@ const Dashboard = () => {
       <View style={styles.screenSizeFooter}>
         <Text style={styles.screenSizeText}>{`${width} × ${height}`}</Text>
       </View> */}
+        <AttendanceHistoryModal 
+        visible={showAttendanceHistory} 
+        onClose={() => setShowAttendanceHistory(false)} 
+        />
         </SafeAreaView>
     );
 };
@@ -257,8 +319,11 @@ const styles = StyleSheet.create({
     },
     headerTitle: {fontSize: 18, color: '#fff', fontWeight: '600'},
     headerRight: {flexDirection: 'row', alignItems: 'center', gap: 6},
-    codeIcon: {color: '#fff', fontSize: 12, fontFamily: 'monospace', marginLeft: 4},
-
+    historyButton: {
+        padding: 8,
+        borderRadius: 20,
+        backgroundColor: 'rgba(255, 255, 255, 0.1)',
+    },
     mapContainer: {flex: 1},
     map: {flex: 1},
     loadingContainer: {flex: 1, justifyContent: 'center', alignItems: 'center'},
