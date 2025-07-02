@@ -1,0 +1,179 @@
+// === backend/server.js ===
+const express = require('express');
+const multer = require('multer');
+const { exec } = require('child_process');
+const path = require('path');
+const fs = require('fs');
+const cors = require('cors');
+
+const app = express();
+app.use(cors());
+const upload = multer({ dest: 'uploads/' });
+
+app.post('/api/upload-face', upload.single('image'), (req, res) => {
+  const filePath = req.file.path;
+
+  exec(`python3 python/match_face.py ${filePath}`, (error, stdout, stderr) => {
+    fs.unlinkSync(filePath); // Cleanup
+
+    if (error) {
+      console.error(stderr);
+      return res.status(500).json({ error: 'Face match error' });
+    }
+
+    try {
+      const result = JSON.parse(stdout);
+      res.json(result);
+    } catch (err) {
+      res.status(500).json({ error: 'Invalid match response' });
+    }
+  });
+});
+
+app.listen(3000, () => console.log('Server running on port 3000'));
+
+
+
+pip install face_recognition opencv-python numpy mysql-connector-python
+
+
+
+// === python/match_face.py ===
+import sys
+import json
+import mysql.connector
+import os
+from deepface import DeepFace
+
+image_path = sys.argv[1]
+
+conn = mysql.connector.connect(
+    host="localhost",
+    user="your_user",
+    password="your_password",
+    database="your_db"
+)
+cursor = conn.cursor()
+
+cursor.execute("SELECT user_id, face_encoding FROM face_data")
+for user_id, encoding_blob in cursor.fetchall():
+    stored_image_path = f"stored_images/{user_id}.jpg"
+    if not os.path.exists(stored_image_path):
+        continue
+    try:
+        result = DeepFace.verify(img1_path=image_path, img2_path=stored_image_path, detector_backend='retinaface')
+        if result["verified"] and result["distance"] < 0.4:
+            print(json.dumps({"matched": True, "user_id": user_id}))
+            sys.exit()
+    except Exception as e:
+        continue
+
+print(json.dumps({"matched": False}))
+
+
+// === python/register_face.py (for saving encodings) ===
+import face_recognition
+import sys
+import mysql.connector
+import shutil
+
+image_path = sys.argv[1]
+user_id = sys.argv[2]
+
+image = face_recognition.load_image_file(image_path)
+encodings = face_recognition.face_encodings(image)
+
+if not encodings:
+    print("No face detected")
+    sys.exit()
+
+face_str = ','.join(map(str, encodings[0].tolist()))
+
+conn = mysql.connector.connect(
+    host="localhost",
+    user="your_user",
+    password="your_password",
+    database="your_db"
+)
+cursor = conn.cursor()
+
+cursor.execute("INSERT INTO face_data (user_id, face_encoding) VALUES (%s, %s)", (user_id, face_str))
+conn.commit()
+
+# Save image for future match
+shutil.copy(image_path, f"stored_images/{user_id}.jpg")
+
+print("Encoding and image saved")
+
+
+// === SQL: MySQL Table Setup ===
+/*
+CREATE TABLE face_data (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  user_id INT NOT NULL,
+  face_encoding TEXT NOT NULL
+);
+*/
+
+
+// === React Native (expo-camera example) ===
+// Install expo-camera and axios
+/*
+expo install expo-camera
+npm install axios
+*/
+
+// === App.js ===
+import React, { useState, useEffect, useRef } from 'react';
+import { View, Button, StyleSheet, Alert } from 'react-native';
+import { Camera } from 'expo-camera';
+import axios from 'axios';
+
+export default function App() {
+  const [hasPermission, setHasPermission] = useState(null);
+  const cameraRef = useRef(null);
+
+  useEffect(() => {
+    (async () => {
+      const { status } = await Camera.requestCameraPermissionsAsync();
+      setHasPermission(status === 'granted');
+    })();
+  }, []);
+
+  const takePicture = async () => {
+    if (cameraRef.current) {
+      const photo = await cameraRef.current.takePictureAsync({ base64: true });
+      const formData = new FormData();
+      formData.append('image', {
+        uri: photo.uri,
+        type: 'image/jpeg',
+        name: 'face.jpg',
+      });
+
+      try {
+        const res = await axios.post('http://your-server-ip:3000/api/upload-face', formData, {
+          headers: { 'Content-Type': 'multipart/form-data' },
+        });
+        Alert.alert('Result', res.data.matched ? 'Match Found!' : 'No Match');
+      } catch (err) {
+        console.error(err);
+        Alert.alert('Error', 'Failed to verify face');
+      }
+    }
+  };
+
+  if (hasPermission === null) return <View />;
+  if (hasPermission === false) return <Text>No access to camera</Text>;
+
+  return (
+    <View style={styles.container}>
+      <Camera style={styles.camera} ref={cameraRef} />
+      <Button title="Verify Face" onPress={takePicture} />
+    </View>
+  );
+}
+
+const styles = StyleSheet.create({
+  container: { flex: 1 },
+  camera: { flex: 1 },
+});

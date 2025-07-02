@@ -46,7 +46,7 @@ export default function Login() {
                 if (checkRes.ok && checkData.exists) {
                     router.replace('/(dashboard)');
                 } else {
-                    router.replace('/face-verification');
+                    router.replace('/(dashboard)');
                 }
             } catch (error) {
                 console.error('Descriptor check failed:', error);
