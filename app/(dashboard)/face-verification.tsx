@@ -1,10 +1,12 @@
 import React, { useEffect, useState, useRef } from 'react';
 import {
-  View, Text, TouchableOpacity, StyleSheet, Dimensions
+  View, Text, TouchableOpacity, StyleSheet, Dimensions,
+  Alert
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import * as Animatable from 'react-native-animatable';
 import { CameraView, useCameraPermissions } from 'expo-camera';
+import axios from 'axios';
 
 const { width } = Dimensions.get('window');
 const OVAL_WIDTH = 260;
@@ -28,12 +30,28 @@ export const BiometricScanScreen = () => {
       </View>
     );
   }
-
-  const takePhoto = async () => {
+  const takePicture = async () => {
     if (cameraRef.current) {
-      const photo = await cameraRef.current.takePictureAsync({ quality: 0.7, base64: true });
-      console.log('Captured photo:', photo.uri);
-      // TODO: send photo.base64 or URI to your backend for face recognition
+      const photo = await cameraRef.current.takePictureAsync({ base64: true });
+      // Helper to fetch the image as a blob
+      const uriToBlob = async (uri: string): Promise<Blob> => {
+        const response = await fetch(uri);
+        return await response.blob();
+      };
+
+      const formData = new FormData();
+      const imageBlob = await uriToBlob(photo.uri);
+      formData.append('image', imageBlob, 'face.jpg');
+
+      try {
+        const res = await axios.post('http://192.168.250.22:9000/upload-face', formData, {
+          headers: { 'Content-Type': 'multipart/form-data' },
+        });
+        Alert.alert('Result', res.data.matched ? 'Match Found!' : 'No Match');
+      } catch (err) {
+        console.error(err);
+        Alert.alert('Error', 'Failed to verify face');
+      }
     }
   };
 
@@ -81,7 +99,7 @@ export const BiometricScanScreen = () => {
         </View>
 
         {/* Scan Button */}
-        <TouchableOpacity style={styles.scanButton} onPress={takePhoto}>
+        <TouchableOpacity style={styles.scanButton} onPress={takePicture}>
           <Text style={styles.scanButtonText}>SCAN</Text>
         </TouchableOpacity>
       </View>
