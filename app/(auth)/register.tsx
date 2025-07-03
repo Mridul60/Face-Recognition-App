@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 import { Image, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import faceimg from '../../assets/images/face.png';
 import styles from '../styles';
 import { registerUser } from '../viewmodels/register-viewmodel';
-import faceimg from '../../assets/images/face.png';
 
 
 export default function Register() {

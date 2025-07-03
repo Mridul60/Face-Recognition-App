@@ -1,10 +1,11 @@
-import React from "react";
-import { ActivityIndicator, Dimensions, Image, KeyboardAvoidingView, Platform, Text, TextInput, TouchableOpacity, View, StyleSheet } from 'react-native';
-import faceimage from '../../assets/images/face.png';
-import { loginUser } from '../viewmodels/login-viewmodel';
-import { useRouter } from "expo-router";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import config from "../../config"
+import { useRouter } from "expo-router";
+import React from "react";
+import { ActivityIndicator, Dimensions, Image, KeyboardAvoidingView, Platform, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import faceimage from '../../assets/images/face.png';
+import config from "../../config";
+import styles from "../styles";
+import { loginUser } from '../viewmodels/login-viewmodel';
 
 const {width, height} = Dimensions.get('window');
 
@@ -134,107 +135,3 @@ export default function Login() {
 }
 
 
-const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-        padding: 20,
-        justifyContent: 'space-around',
-    },
-    topSection: {
-        alignItems: 'center',
-        marginTop: 60,
-    },
-    image: {
-        width: 160,
-        height: 160,
-    },
-    appName: {
-        fontSize: 28,
-        fontWeight: 'bold',
-        marginBottom: 20,
-    },
-    appAbout: {
-        fontSize: 22,
-        color: 'gray',
-        marginTop: 20,
-    },
-    buttonRow: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        gap: 30,
-    },
-    button: {
-        flex: 1,
-        backgroundColor: 'green',
-        padding: 16,
-        borderRadius: 40,
-        alignItems: 'center',
-    },
-    buttonText: {
-        color: 'white',
-        fontWeight: 'bold',
-    },
-    separator: {
-        height: 16,
-    },
-    googleButton: {
-        backgroundColor: 'green',
-        padding: 16,
-        borderRadius: 40,
-        alignItems: 'center',
-    },
-    formSection: {
-        flex: 1,
-        justifyContent: 'flex-start',
-        paddingTop: 20,
-        alignSelf: 'center',
-    },
-    input: {
-        borderWidth: 1,
-        borderColor: 'gray',
-        borderRadius: 8,
-        paddingHorizontal: 16,
-        marginBottom: 20,
-        fontSize: Math.max(16, width * 0.04),
-    },
-    passwordContainer: {
-        flexDirection: 'row',
-        borderWidth: 1,
-        borderColor: 'gray',
-        borderRadius: 8,
-        paddingStart: 16,
-        marginBottom: 12,
-    },
-    passwordInput: {
-        flex: 1,
-        fontSize: Math.max(16, width * 0.04),
-    },
-    showHideButton: {
-        padding: 12,
-        fontSize: Math.max(14, width * 0.035),
-    },
-    forgotPassword: {
-        alignSelf: 'flex-end',
-        marginBottom: height * 0.04,
-    },
-    forgotText: {
-        color: '#007AFF',
-        fontSize: Math.max(14, width * 0.035),
-    },
-    cameraWrapper: {
-        width: '100%',
-        height: 300, // partial screen height
-        borderRadius: 16,
-        overflow: 'hidden',
-    },
-    camera: {
-        flex: 1,
-    },
-    registerButton: {
-        // flex: 1,
-        backgroundColor: 'green',
-        padding: 16,
-        borderRadius: 40,
-        alignItems: 'center',
-    },
-});
