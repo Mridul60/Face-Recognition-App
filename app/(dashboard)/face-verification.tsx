@@ -39,7 +39,10 @@ const BiometricScanScreen = () => {
         setIsProcessing(true);
         try {
             if (!cameraRef.current) return;
-            const photo = await cameraRef.current.takePictureAsync();
+            const photo = await cameraRef.current.takePictureAsync({
+                quality: 0.5,
+                skipProcessing: true
+            });
             const userId = await AsyncStorage.getItem('userId');
             if (!photo?.uri || !userId) {
                 Alert.alert('Error', 'Camera or user ID unavailable');
@@ -66,13 +69,11 @@ const BiometricScanScreen = () => {
             });
 
             const raw = await response.text();
-            console.log('Raw server response:', raw);
 
             let data;
             try {
                 data = JSON.parse(raw);
             } catch (err) {
-                console.error('Invalid JSON:', raw);
                 Alert.alert('Error', 'Server returned invalid response.');
                 return;
             }
@@ -94,7 +95,6 @@ const BiometricScanScreen = () => {
             }
 
         } catch (error) {
-            console.error('Face scan failed:', error);
             Alert.alert('Error', 'Face scan failed. Try again.');
         } finally {
             setIsProcessing(false);

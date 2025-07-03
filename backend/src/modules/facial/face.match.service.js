@@ -68,7 +68,6 @@ const faceMatchService = () => {
 
                 parsed = JSON.parse(jsonLine);
             } catch (err) {
-                console.error('Failed to parse Python output:', output);
                 return {
                     statusCode: 500,
                     body: {
@@ -100,7 +99,6 @@ const faceMatchService = () => {
 
                 const punchRequest = { body: punchBody };
                 const punchResult = await punchHandler(punchRequest);
-                console.log("punchResult", punchResult);
                 return {
                     statusCode: 200,
                     body: {
@@ -113,7 +111,6 @@ const faceMatchService = () => {
 
 
         } catch (error) {
-            console.error('Face match error:', error);
             return {
                 statusCode: 500,
                 body: { success: false, message: 'Internal Server Error' }
