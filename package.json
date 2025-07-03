@@ -12,6 +12,8 @@
     "lint": "expo lint"
   },
   "dependencies": {
+    "@expo-google-fonts/karla": "^0.4.1",
+    "@expo-google-fonts/markazi-text": "^0.4.0",
     "@expo/config-plugins": "~10.0.0",
     "@expo/prebuild-config": "~9.0.0",
     "@expo/vector-icons": "^14.1.0",
