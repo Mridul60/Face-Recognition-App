@@ -8,6 +8,7 @@ import { CameraView, useCameraPermissions } from 'expo-camera';
 import { router } from 'expo-router';
 import styles from './styles-face-verification';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import config from "../../config"
 
 const BiometricScanScreen = () => {
     const [permission, requestPermission] = useCameraPermissions();
@@ -22,7 +23,7 @@ const BiometricScanScreen = () => {
             if (!userId) return;
 
             try {
-                const res = await fetch(`http://192.168.195.5:9000/face/isAvailable/${userId}`);
+                const res = await fetch(config.API.IS_AVAILABLE(userId));
                 const data = await res.json();
                 setFaceExists(data?.body?.exists === true);
             } catch (err) {
@@ -53,8 +54,8 @@ const BiometricScanScreen = () => {
             } as any);
 
             const endpoint = faceExists
-                ? `http://192.168.195.5:9000/face/match/${userId}`
-                : `http://192.168.195.5:9000/face/register/${userId}`;
+                ? config.API.FACE_MATCH(userId)
+                : config.API.FACE_REGISTER(userId);
 
             const response = await fetch(endpoint, {
                 method: 'POST',

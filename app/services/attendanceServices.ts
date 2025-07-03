@@ -1,5 +1,7 @@
+import config from "../../config"
+
 export const submitPunch = async (userId: string, date: string, time: string, type: 'in' | 'out') => {
-    const response = await fetch('http://192.168.195.5:9000/attendance/punch', {
+    const response = await fetch(config.API.ATTENDANCE_PUNCH, {
         method: 'POST',
         headers: {'Content-Type': 'application/json'},
         body: JSON.stringify({employeeID: userId, date, time, type}),

@@ -4,6 +4,7 @@ import faceimage from '../../assets/images/face.png';
 import { loginUser } from '../viewmodels/login-viewmodel';
 import { useRouter } from "expo-router";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import config from "../../config"
 
 const {width, height} = Dimensions.get('window');
 
@@ -49,7 +50,7 @@ export default function Login() {
 
             // Check if facial descriptor exists
             try {
-                const checkRes = await fetch(`http://192.168.195.5:9000/face/isAvailable/${userId}`);
+                const checkRes = await fetch(config.API.IS_AVAILABLE(userId));
                 const checkData = await checkRes.json();
                 if (checkRes.ok && checkData.body.exists) {
                     router.replace('/(dashboard)');

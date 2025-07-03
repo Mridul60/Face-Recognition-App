@@ -11,7 +11,7 @@ const authGuard = (req, res, next) => {
         req.user = decoded;
         next();
     } catch(err) {
-        const error = CustomError({ message: 'Uanauthroized access.', status: 401});
+        const error = CustomError({ message: 'Unauthorized access.', status: 401});
         sendResponse(res, error.handle())
     }
 }

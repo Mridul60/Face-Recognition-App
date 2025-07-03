@@ -1,4 +1,5 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import config from "../../config"
 
 export const loginUser = async (
     email: string,
@@ -9,7 +10,7 @@ export const loginUser = async (
     }
 
     try {
-        const response = await fetch('http://192.168.195.5:9000/auth/login', {
+        const response = await fetch(config.API.AUTH_LOGIN, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ email, password })

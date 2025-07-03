@@ -1,4 +1,5 @@
 import axios from 'axios';
+import config from "../../config"
 
 export const verifyFace = async (photoUri: string, userId: string): Promise<{ matched: boolean; error?: string }> => {
     const uriToBlob = async (uri: string): Promise<Blob> => {
@@ -11,7 +12,7 @@ export const verifyFace = async (photoUri: string, userId: string): Promise<{ ma
         const formData = new FormData();
         formData.append('image', imageBlob, 'face.jpg');
 
-        const response = await fetch(`http://192.168.195.5:9000/face/match/${userId}`, {
+        const response = await fetch(config.API.FACE_MATCH(userId), {
             method: 'POST',
             body: formData,
         });
