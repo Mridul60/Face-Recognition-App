@@ -27,15 +27,12 @@ export const useBiometricAuth = (
         });
 
         if (result.success) {
-            const userId = await AsyncStorage.getItem('userId');
-            const response = await fetch(`http://192.168.195.5:9000/facial/check/${userId}`);
-            const data = await response.json();
-            console.log("data: ", data);
-            if (data.exists) {
-                handlePunchAction();
-            } else {
-                router.push('/face-verification');
-            }
+            router.push('/face-verification');
+            // const userId = await AsyncStorage.getItem('userId');
+            // const response = await fetch(`http://192.168.195.5:9000/facial/check/${userId}`);
+            // const data = await response.json();
+            // console.log("data: ", data);
+            // handlePunchAction();
         } else {
             Alert.alert('Authentication Failed');
         }

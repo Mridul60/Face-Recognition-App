@@ -9,7 +9,7 @@ export const loginUser = async (
     }
 
     try {
-        const response = await fetch('http://192.168.250.22:9000/auth/login', {
+        const response = await fetch('http://192.168.195.5:9000/auth/login', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ email, password })

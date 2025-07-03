@@ -1,14 +1,28 @@
+// function adaptRequest(req) {
+//     return Object.freeze({
+//         path: req.path,
+//         method: req.method,
+//         body: req.body,
+//         user:req.user,
+//         pathParams: req.params,
+//         queryParams: req.queryParams,
+//         files: req.files ? req.files : {},
+//         filename:req.filename
+//     })
+// }
+
 function adaptRequest(req) {
     return Object.freeze({
         path: req.path,
         method: req.method,
         body: req.body,
-        user:req.user,
+        user: req.user,
         pathParams: req.params,
-        queryParams: req.queryParams,
-        files: req.files ? req.files : {},
-        filename:req.filename
-    })
+        queryParams: req.query,
+        files: req.files || {},
+        file: req.file || null,
+        filename: req.filename
+    });
 }
 
 function sendResponse(res, results) {

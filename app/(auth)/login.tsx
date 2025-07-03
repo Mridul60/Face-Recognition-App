@@ -41,7 +41,6 @@ export default function Login() {
         if (result.success) {
             // Get stored userId
             const userId = await AsyncStorage.getItem('userId');
-            console.log("userid in login: ", userId);
             if (!userId) {
                 setErrorMessage('Something went wrong. Please try again.');
                 return;
@@ -49,16 +48,14 @@ export default function Login() {
 
             // Check if facial descriptor exists
             try {
-                const checkRes = await fetch(`http://192.168.195.5:9000/facial/check/${userId}`);
+                const checkRes = await fetch(`http://192.168.195.5:9000/face/isAvailable/${userId}`);
                 const checkData = await checkRes.json();
-
-                if (checkRes.ok && checkData.exists) {
+                if (checkRes.ok && checkData.body.exists) {
                     router.replace('/(dashboard)');
                 } else {
-                    router.replace('/(dashboard)');
+                    router.replace('/face-verification');
                 }
             } catch (error) {
-                router.replace('/face-verification');
                 console.error('Descriptor check failed:', error);
                 setErrorMessage('Server error while checking facial data.');
             }

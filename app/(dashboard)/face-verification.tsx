@@ -1,290 +1,155 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import {
-  View, Text, TouchableOpacity, StyleSheet, Dimensions,
-  Alert
+    View, Text, TouchableOpacity, StyleSheet, Alert,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import * as Animatable from 'react-native-animatable';
 import { CameraView, useCameraPermissions } from 'expo-camera';
-import axios from 'axios';
+import { router } from 'expo-router';
+import styles from './styles-face-verification';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
-Dimensions.get('window');
-const OVAL_WIDTH = 260;
-const OVAL_HEIGHT = 340;
+const BiometricScanScreen = () => {
+    const [permission, requestPermission] = useCameraPermissions();
+    const cameraRef = useRef<CameraView | null>(null);
+    const [faceExists, setFaceExists] = useState<boolean | null>(null);
 
-export const BiometricScanScreen = () => {
-  const [permission, requestPermission] = useCameraPermissions();
-  const cameraRef = useRef<CameraView | null>(null);
+    // Step 1: Check if user's face is already registered
+    useEffect(() => {
+        (async () => {
+            const userId = await AsyncStorage.getItem('userId');
+            if (!userId) return;
 
-  useEffect(() => {
-    if (!permission) requestPermission();
-  }, [permission, requestPermission]);
+            try {
+                const res = await fetch(`http://192.168.195.5:9000/face/isAvailable/${userId}`);
+                const data = await res.json();
+                setFaceExists(data?.body?.exists === true);
+            } catch (err) {
+                console.error("Failed to check face availability", err);
+                Alert.alert("Error", "Could not check facial data.");
+            }
+        })();
+    }, []);
 
-  if (!permission || !permission.granted) {
-    return (
-      <View style={styles.centered}>
-        <Text>No camera access</Text>
-        <TouchableOpacity onPress={requestPermission} style={styles.scanButton}>
-          <Text style={styles.scanButtonText}>Grant Permission</Text>
-        </TouchableOpacity>
-      </View>
-    );
-  }
-  const takePicture = async () => {
-    if (cameraRef.current) {
-      const photo = await cameraRef.current.takePictureAsync({ base64: true });
-      // Helper to fetch the image as a blob
-      const uriToBlob = async (uri: string): Promise<Blob> => {
-        const response = await fetch(uri);
-        return await response.blob();
-      };
+    // Step 2: Handle face capture and upload
+    const handleScan = async () => {
+        try {
+            if (!cameraRef.current) return;
 
-      const formData = new FormData();
-      const imageBlob = await uriToBlob(photo.uri);
-      formData.append('image', imageBlob, 'face.jpg');
+            const photo = await cameraRef.current.takePictureAsync();
+            const userId = await AsyncStorage.getItem('userId');
+            if (!photo?.uri || !userId) {
+                Alert.alert('Error', 'Camera or user ID unavailable');
+                return;
+            }
 
-      try {
-        const res = await axios.post('http://192.168.250.22:9000/upload-face', formData, {
-          headers: { 'Content-Type': 'multipart/form-data' },
-        });
-        Alert.alert('Result', res.data.matched ? 'Match Found!' : 'No Match');
-      } catch (err) {
-        console.error(err);
-        Alert.alert('Error', 'Failed to verify face');
-      }
+            const formData = new FormData();
+            formData.append('image', {
+                uri: photo.uri,
+                name: 'face.jpg',
+                type: 'image/jpg',
+            } as any);
+
+            const endpoint = faceExists
+                ? `http://192.168.195.5:9000/face/match/${userId}`
+                : `http://192.168.195.5:9000/face/register/${userId}`;
+
+            const response = await fetch(endpoint, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'multipart/form-data',
+                },
+                body: formData,
+            });
+
+            const raw = await response.text();
+            console.log('Raw server response:', raw);
+
+            let data;
+            try {
+                data = JSON.parse(raw);
+            } catch (err) {
+                console.error('Invalid JSON:', raw);
+                Alert.alert('Error', 'Server returned invalid response.');
+                return;
+            }
+
+            if (faceExists) {
+                if (data.body?.matched) {
+                    Alert.alert('Success', 'Face matched. Punch recorded!');
+                    router.replace('/(dashboard)');
+                } else {
+                    Alert.alert('Failed', 'Face does not match.');
+                }
+            } else {
+                if (data.body?.success) {
+                    Alert.alert('Success', 'Face registered successfully!');
+                    router.replace('/(dashboard)');
+                } else {
+                    Alert.alert('Failed', data.body?.message || 'Registration failed');
+                }
+            }
+
+        } catch (error) {
+            console.error('Face scan failed:', error);
+            Alert.alert('Error', 'Face scan failed. Try again.');
+        }
+    };
+
+    // Step 3: Handle camera permission
+    if (!permission || !permission.granted) {
+        return (
+            <View style={styles.centered}>
+                <Text>No camera access</Text>
+                <TouchableOpacity onPress={requestPermission} style={styles.scanButton}>
+                    <Text style={styles.scanButtonText}>Grant Permission</Text>
+                </TouchableOpacity>
+            </View>
+        );
     }
-  };
 
-  return (
-    <View style={styles.container}>
-      {/* Header */}
-      <View style={styles.header}>
-        <Text style={styles.headerTitle}>Facial Scan</Text>
-        <TouchableOpacity style={styles.closeButton}>
-          <Ionicons name="close" size={20} color="#fff" />
-        </TouchableOpacity>
-      </View>
+    return (
+        <View style={styles.container}>
+            <View style={styles.header}>
+                <Text style={styles.headerTitle}>Facial {faceExists ? 'Verification' : 'Registration'}</Text>
+                <TouchableOpacity style={styles.closeButton} onPress={router.back}>
+                    <Ionicons name="close" size={20} color="#fff" />
+                </TouchableOpacity>
+            </View>
 
-      {/* Content */}
-      <View style={styles.content}>
-        <Text style={styles.title}>Align Your Face</Text>
+            <View style={styles.content}>
+                <Text style={styles.title}>{faceExists ? 'Align Your Face to Verify' : 'Align Your Face to Register'}</Text>
 
-        {/* Oval scan area */}
-        <View style={styles.scanArea}>
-          <CameraView
-            ref={cameraRef}
-            style={StyleSheet.absoluteFill}
-            facing={'front'}
-          />
-          <Animatable.View
-            animation="pulse"
-            easing="ease-in-out"
-            iterationCount="infinite"
-            duration={1400}
-            style={styles.dottedOval}
-          />
-          <View style={styles.ovalBorder} pointerEvents = "none" />
+                <View style={styles.scanArea}>
+                    <CameraView ref={cameraRef} style={StyleSheet.absoluteFill} facing="front" />
 
-          <View style={styles.cornerTopLeft} />
-          <View style={styles.cornerTopRight} />
-          <View style={styles.cornerBottomLeft} />
-          <View style={styles.cornerBottomRight} />
+                    <Animatable.View
+                        animation="pulse"
+                        easing="ease-in-out"
+                        iterationCount="infinite"
+                        duration={1400}
+                        style={styles.dottedOval}
+                    />
+
+                    <View style={styles.ovalBorder} pointerEvents="none" />
+                    <View style={styles.cornerTopLeft} />
+                    <View style={styles.cornerTopRight} />
+                    <View style={styles.cornerBottomLeft} />
+                    <View style={styles.cornerBottomRight} />
+                </View>
+
+                <View style={styles.instructionCard}>
+                    <Text style={styles.instructionText}>
+                        Position your face within the frame and keep still.
+                    </Text>
+                </View>
+
+                <TouchableOpacity style={styles.scanButton} onPress={handleScan}>
+                    <Text style={styles.scanButtonText}>{faceExists ? 'VERIFY' : 'REGISTER'}</Text>
+                </TouchableOpacity>
+            </View>
         </View>
-
-        {/* Instruction */}
-        <View style={styles.instructionCard}>
-          <Text style={styles.instructionText}>
-            Position your face within the frame and keep still.
-          </Text>
-        </View>
-
-        {/* Scan Button */}
-        <TouchableOpacity style={styles.scanButton} onPress={takePicture}>
-          <Text style={styles.scanButtonText}>SCAN</Text>
-        </TouchableOpacity>
-      </View>
-    </View>
-  );
+    );
 };
-
-const styles = StyleSheet.create({
-  centered: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  container: {
-    flex: 1,
-    backgroundColor: '#ffffff',
-  },
-  header: {
-    backgroundColor: '#2F3E46',
-    padding: 16,
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  headerTitle: {
-    color: '#D1D5DB',
-    fontSize: 18,
-    fontWeight: '500',
-  },
-  closeButton: {
-    padding: 4,
-  },
-  content: {
-    flex: 1,
-    padding: 24,
-    alignItems: 'center',
-    justifyContent: 'space-evenly',
-  },
-  title: {
-    fontSize: 20,
-    fontWeight: '500',
-    color: '#1F2937',
-  },
-  scanArea: {
-    width: OVAL_WIDTH,
-    height: OVAL_HEIGHT,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: '#fff',
-    borderRadius: OVAL_WIDTH / 2,
-    overflow: 'hidden',
-    position: 'relative',
-  },
-  pulseOverlay: {
-    position: 'absolute',
-    width: OVAL_WIDTH - 80,
-    height: OVAL_HEIGHT - 50,
-    borderRadius: 200,
-    borderWidth: 2,
-    borderColor: '#2DD4BF',
-    backgroundColor: 'rgba(45, 212, 191, 0.08)',
-    zIndex: 1,
-  },
-  dottedOval: {
-    position: 'absolute',
-    width: OVAL_WIDTH - 60,
-    height: OVAL_HEIGHT - 80,
-    borderRadius: OVAL_WIDTH / 2,
-    borderWidth: 1.5,
-    borderColor: '#2DD4BF',
-    backgroundColor: 'rgba(45, 212, 191, 0.08)',
-    borderStyle: 'dotted',
-    zIndex: 2,
-  },
-  ovalBorder: {
-    position: 'absolute',
-    width: OVAL_WIDTH,
-    height: OVAL_HEIGHT,
-    borderRadius: OVAL_WIDTH / 2,
-    borderWidth: 3,
-    borderColor: '#10877d',
-    zIndex: 3,
-  },
-  // notchTop: {
-  //   position: 'absolute',
-  //   top: 8,
-  //   width: 60,
-  //   height: 4,
-  //   backgroundColor: '#2DD4BF',
-  //   borderRadius: 2,
-  //   zIndex: 3,
-  // },
-  // notchBottom: {
-  //   position: 'absolute',
-  //   bottom: 8,
-  //   width: 60,
-  //   height: 4,
-  //   backgroundColor: '#2DD4BF',
-  //   borderRadius: 2,
-  //   zIndex: 3,
-  // },
-  // notchLeft: {
-  //   position: 'absolute',
-  //   left: 8,
-  //   width: 4,
-  //   height: 60,
-  //   backgroundColor: '#2DD4BF',
-  //   borderRadius: 2,
-  //   zIndex: 3,
-  // },
-  // notchRight: {
-  //   position: 'absolute',
-  //   right: 8,
-  //   width: 4,
-  //   height: 60,
-  //   backgroundColor: '#2DD4BF',
-  //   borderRadius: 2,
-  //   zIndex: 3,
-  // },
-  cornerTopLeft: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    width: 30,
-    height: 30,
-    borderTopWidth: 3,
-    borderLeftWidth: 3,
-    borderColor: '#2DD4BF',
-    zIndex: 5,
-  },
-  cornerTopRight: {
-    position: 'absolute',
-    top: 0,
-    right: 0,
-    width: 30,
-    height: 30,
-    borderTopWidth: 3,
-    borderRightWidth: 3,
-    borderColor: '#2DD4BF',
-    zIndex: 5,
-  },
-  cornerBottomLeft: {
-    position: 'absolute',
-    bottom: 0,
-    left: 0,
-    width: 30,
-    height: 30,
-    borderBottomWidth: 3,
-    borderLeftWidth: 3,
-    borderColor: '#2DD4BF',
-    zIndex: 5,
-  },
-  cornerBottomRight: {
-    position: 'absolute',
-    bottom: 0,
-    right: 0,
-    width: 30,
-    height: 30,
-    borderBottomWidth: 3,
-    borderRightWidth: 3,
-    borderColor: '#2DD4BF',
-    zIndex: 5,
-  },
-  instructionCard: {
-    width: '100%',
-    backgroundColor: '#F3F4F6',
-    padding: 16,
-    borderRadius: 8,
-  },
-  instructionText: {
-    fontSize: 14,
-    color: '#4B5563',
-    textAlign: 'center',
-  },
-  scanButton: {
-    backgroundColor: '#52796f',
-    paddingVertical: 10,
-    paddingHorizontal: 28,
-    borderRadius: 8,
-  },
-  scanButtonText: {
-    color: '#ffffff',
-    fontWeight: '600',
-    fontSize: 16,
-  },
-});
 
 export default BiometricScanScreen;

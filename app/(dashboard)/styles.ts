@@ -66,6 +66,11 @@ const styles = StyleSheet.create({
         alignItems: 'center',
     },
     screenSizeText: {color: '#fff', fontSize: 12, fontFamily: 'monospace'},
+    historyButton: {
+        padding: 8,
+        borderRadius: 20,
+        backgroundColor: 'rgba(255, 255, 255, 0.1)',
+    },
 });
 
 export default styles;

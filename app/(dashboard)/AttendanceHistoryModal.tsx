@@ -38,7 +38,7 @@ const AttendanceHistoryModal: React.FC<AttendanceHistoryModalProps> = ({ visible
     status: string;
     isToday: boolean;
   };
-  
+
   const [attendanceData, setAttendanceData] = useState<AttendanceRecord[]>([]);
   const [showMonthPicker, setShowMonthPicker] = useState(false);
   const [showYearPicker, setShowYearPicker] = useState(false);
@@ -105,12 +105,12 @@ const AttendanceHistoryModal: React.FC<AttendanceHistoryModalProps> = ({ visible
       loadAttendanceData();
     }
   }, [selectedMonth, selectedYear, visible]);
-  
+
   const loadAttendanceData = async () => {
     try {
       const storedData = await AsyncStorage.getItem('attendanceHistory');
       let attendanceHistory = storedData ? JSON.parse(storedData) : sampleData;
-  
+
       const filteredData = attendanceHistory.filter((record: { date: string; }) => {
         const dateParts = record.date.split('/');
         if (dateParts.length !== 3) {
@@ -121,10 +121,10 @@ const AttendanceHistoryModal: React.FC<AttendanceHistoryModalProps> = ({ visible
         const recordDate = new Date(year, month - 1, day);
         return recordDate.getMonth() === selectedMonth && recordDate.getFullYear() === selectedYear;
       });
-  
+
       setAttendanceData(filteredData);
-      setTotalAttendance(filteredData.filter((record: { status: string; }) => 
-        record.status === 'Present' || record.status === 'Late'
+      setTotalAttendance(filteredData.filter((record: { status: string; }) =>
+          record.status === 'Present' || record.status === 'Late'
       ).length);
     } catch (error) {
       console.error('Error loading attendance data:', error);
@@ -132,7 +132,7 @@ const AttendanceHistoryModal: React.FC<AttendanceHistoryModalProps> = ({ visible
       setTotalAttendance(3);
     }
   };
-  
+
 
 
   const getStatusColor = (status: string) => {
@@ -156,35 +156,35 @@ const AttendanceHistoryModal: React.FC<AttendanceHistoryModalProps> = ({ visible
   };
 
 
-const handleCheckOut = async (recordId: number) => {
-  Alert.alert(
-    'Punch Out',
-    'Do you want to punch out now?',
-    [
-      { text: 'Cancel', style: 'cancel' },
-      {
-        text: 'Punch-Out',
-        onPress: async () => {
-          try {
-            const now = new Date();
-            const timeString = await savePunchToHistory('out', now);
+  const handleCheckOut = async (recordId: number) => {
+    Alert.alert(
+        'Punch Out',
+        'Do you want to punch out now?',
+        [
+          { text: 'Cancel', style: 'cancel' },
+          {
+            text: 'Punch-Out',
+            onPress: async () => {
+              try {
+                const now = new Date();
+                const timeString = await savePunchToHistory('out', now);
 
-            // Update local state to reflect the punch-out
-            setAttendanceData(prev =>
-              prev.map(record =>
-                record.id === recordId
-                  ? { ...record, outTime: timeString }
-                  : record
-              )
-            );
-          } catch (error) {
-            Alert.alert('Error', 'Could not complete checkout.');
-          }
-        },
-      },
-    ]
-  );
-};
+                // Update local state to reflect the punch-out
+                setAttendanceData(prev =>
+                    prev.map(record =>
+                        record.id === recordId
+                            ? { ...record, outTime: timeString }
+                            : record
+                    )
+                );
+              } catch (error) {
+                Alert.alert('Error', 'Could not complete checkout.');
+              }
+            },
+          },
+        ]
+    );
+  };
 
 
   type MonthYearPickerProps = {
@@ -197,170 +197,170 @@ const handleCheckOut = async (recordId: number) => {
   };
 
   const MonthYearPicker: React.FC<MonthYearPickerProps> = ({ visible, onClose, items, selectedValue, onSelect, title }) => (
-    <Modal visible={visible} transparent animationType="slide">
-      <View style={styles.pickerOverlay}>
-        <View style={styles.pickerContent}>
-          <View style={styles.pickerHeader}>
-            <Text style={styles.pickerTitle}>{title}</Text>
-            <TouchableOpacity onPress={onClose}>
-              <Icon name="close" size={24} color="#666" />
-            </TouchableOpacity>
-          </View>
-          <ScrollView style={styles.pickerScroll}>
-            {items.map((item, index) => (
-              <TouchableOpacity
-                key={index}
-                style={[
-                  styles.pickerItem,
-                  (typeof item === 'string' ? index : item) === selectedValue && styles.selectedPickerItem
-                ]}
-                onPress={() => {
-                  onSelect(typeof item === 'string' ? index : item);
-                  onClose();
-                }}
-              >
-                <Text style={[
-                  styles.pickerItemText,
-                  (typeof item === 'string' ? index : item) === selectedValue && styles.selectedPickerItemText
-                ]}>
-                  {item}
-                </Text>
+      <Modal visible={visible} transparent animationType="slide">
+        <View style={styles.pickerOverlay}>
+          <View style={styles.pickerContent}>
+            <View style={styles.pickerHeader}>
+              <Text style={styles.pickerTitle}>{title}</Text>
+              <TouchableOpacity onPress={onClose}>
+                <Icon name="close" size={24} color="#666" />
               </TouchableOpacity>
-            ))}
-          </ScrollView>
+            </View>
+            <ScrollView style={styles.pickerScroll}>
+              {items.map((item, index) => (
+                  <TouchableOpacity
+                      key={index}
+                      style={[
+                        styles.pickerItem,
+                        (typeof item === 'string' ? index : item) === selectedValue && styles.selectedPickerItem
+                      ]}
+                      onPress={() => {
+                        onSelect(typeof item === 'string' ? index : item);
+                        onClose();
+                      }}
+                  >
+                    <Text style={[
+                      styles.pickerItemText,
+                      (typeof item === 'string' ? index : item) === selectedValue && styles.selectedPickerItemText
+                    ]}>
+                      {item}
+                    </Text>
+                  </TouchableOpacity>
+              ))}
+            </ScrollView>
+          </View>
         </View>
-      </View>
-    </Modal>
+      </Modal>
   );
 
   return (
-    <Modal
-      transparent
-      visible={visible}
-      animationType="slide"
-      onRequestClose={onClose}
-    >
-      <View style={styles.overlay}>
-        <View style={styles.modalContainer}>
-          {/* Header */}
-          <View style={styles.header}>
-            <TouchableOpacity style={styles.backButton} onPress={onClose}>
-              <Icon name="arrow-back" size={24} color="white" />
-            </TouchableOpacity>
-            <View style={styles.headerContent}>
-              <Text style={styles.headerTitle}>Monthly Attendance</Text>
-              <View style={styles.headerIcon}>
-                <Icon name="calendar-today" size={24} color="white" />
+      <Modal
+          transparent
+          visible={visible}
+          animationType="slide"
+          onRequestClose={onClose}
+      >
+        <View style={styles.overlay}>
+          <View style={styles.modalContainer}>
+            {/* Header */}
+            <View style={styles.header}>
+              <TouchableOpacity style={styles.backButton} onPress={onClose}>
+                <Icon name="arrow-back" size={24} color="white" />
+              </TouchableOpacity>
+              <View style={styles.headerContent}>
+                <Text style={styles.headerTitle}>Monthly Attendance</Text>
+                <View style={styles.headerIcon}>
+                  <Icon name="calendar-today" size={24} color="white" />
+                </View>
               </View>
             </View>
-          </View>
 
-          {/* Content */}
-          <View style={styles.content}>
-            <Text style={styles.totalAttendance}>Total attendance: {totalAttendance}</Text>
-            
-            {/* Month/Year Selectors */}
-            <View style={styles.selectorContainer}>
-              <TouchableOpacity 
-                style={styles.selector}
-                onPress={() => setShowMonthPicker(true)}
-              >
-                <Text style={styles.selectorText}>{months[selectedMonth]}</Text>
-                <Icon name="arrow-drop-down" size={20} color="#666" />
-              </TouchableOpacity>
-              
-              <TouchableOpacity 
-                style={styles.selector}
-                onPress={() => setShowYearPicker(true)}
-              >
-                <Text style={styles.selectorText}>{selectedYear}</Text>
-                <Icon name="arrow-drop-down" size={20} color="#666" />
-              </TouchableOpacity>
+            {/* Content */}
+            <View style={styles.content}>
+              <Text style={styles.totalAttendance}>Total attendance: {totalAttendance}</Text>
+
+              {/* Month/Year Selectors */}
+              <View style={styles.selectorContainer}>
+                <TouchableOpacity
+                    style={styles.selector}
+                    onPress={() => setShowMonthPicker(true)}
+                >
+                  <Text style={styles.selectorText}>{months[selectedMonth]}</Text>
+                  <Icon name="arrow-drop-down" size={20} color="#666" />
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                    style={styles.selector}
+                    onPress={() => setShowYearPicker(true)}
+                >
+                  <Text style={styles.selectorText}>{selectedYear}</Text>
+                  <Icon name="arrow-drop-down" size={20} color="#666" />
+                </TouchableOpacity>
+              </View>
+
+              {/* Attendance Records */}
+              <ScrollView style={styles.recordsContainer} showsVerticalScrollIndicator={false}>
+                {attendanceData.map((record) => (
+                    <View key={record.id} style={[
+                      styles.recordCard,
+                      record.isToday && styles.todayCard
+                    ]}>
+                      <View style={styles.recordHeader}>
+                        <View style={styles.dateSection}>
+                          <Icon name="event" size={16} color="#666" />
+                          <Text style={styles.dateText}>Date: {record.date}</Text>
+                        </View>
+                        <View style={[
+                          styles.statusBadge,
+                          { backgroundColor: getStatusColor(record.status) }
+                        ]}>
+                          <Icon
+                              name={getStatusIcon(record.status)}
+                              size={12}
+                              color="white"
+                          />
+                          <Text style={styles.statusText}>{record.status}</Text>
+                        </View>
+                      </View>
+
+                      <View style={styles.daySection}>
+                        <Icon name="wb-sunny" size={16} color="#666" />
+                        <Text style={styles.dayText}>Day: {record.day}</Text>
+                      </View>
+
+                      <View style={styles.timeSection}>
+                        <View style={styles.timeItem}>
+                          <Text style={styles.timeLabel}>In Time: </Text>
+                          <Text style={styles.timeValue}>{record.inTime || '—'}</Text>
+                        </View>
+                        <View style={styles.timeItem}>
+                          <Text style={styles.timeLabel}>Out Time: </Text>
+                          <Text style={styles.timeValue}>{record.outTime || '—'}</Text>
+                          {record.isToday && !record.outTime && (
+                              <TouchableOpacity
+                                  style={styles.checkOutButton}
+                                  onPress={() => handleCheckOut(record.id)}
+                              >
+                                <Text style={styles.checkOutButtonText}>Punch Out</Text>
+                              </TouchableOpacity>
+                          )}
+                        </View>
+                      </View>
+                    </View>
+                ))}
+
+                {attendanceData.length === 0 && (
+                    <View style={styles.emptyState}>
+                      <Icon name="event-busy" size={48} color="#ccc" />
+                      <Text style={styles.emptyText}>No attendance records found</Text>
+                      <Text style={styles.emptySubText}>for {months[selectedMonth]} {selectedYear}</Text>
+                    </View>
+                )}
+              </ScrollView>
             </View>
 
-            {/* Attendance Records */}
-            <ScrollView style={styles.recordsContainer} showsVerticalScrollIndicator={false}>
-              {attendanceData.map((record) => (
-                <View key={record.id} style={[
-                  styles.recordCard,
-                  record.isToday && styles.todayCard
-                ]}>
-                  <View style={styles.recordHeader}>
-                    <View style={styles.dateSection}>
-                      <Icon name="event" size={16} color="#666" />
-                      <Text style={styles.dateText}>Date: {record.date}</Text>
-                    </View>
-                    <View style={[
-                      styles.statusBadge,
-                      { backgroundColor: getStatusColor(record.status) }
-                    ]}>
-                      <Icon 
-                        name={getStatusIcon(record.status)} 
-                        size={12} 
-                        color="white" 
-                      />
-                      <Text style={styles.statusText}>{record.status}</Text>
-                    </View>
-                  </View>
-                  
-                  <View style={styles.daySection}>
-                    <Icon name="wb-sunny" size={16} color="#666" />
-                    <Text style={styles.dayText}>Day: {record.day}</Text>
-                  </View>
-                  
-                  <View style={styles.timeSection}>
-                    <View style={styles.timeItem}>
-                      <Text style={styles.timeLabel}>In Time: </Text>
-                      <Text style={styles.timeValue}>{record.inTime || '—'}</Text>
-                    </View>
-                    <View style={styles.timeItem}>
-                      <Text style={styles.timeLabel}>Out Time: </Text>
-                      <Text style={styles.timeValue}>{record.outTime || '—'}</Text>
-                      {record.isToday && !record.outTime && (
-                        <TouchableOpacity 
-                          style={styles.checkOutButton}
-                          onPress={() => handleCheckOut(record.id)}
-                        >
-                          <Text style={styles.checkOutButtonText}>Punch Out</Text>
-                        </TouchableOpacity>
-                      )}
-                    </View>
-                  </View>
-                </View>
-              ))}
-              
-              {attendanceData.length === 0 && (
-                <View style={styles.emptyState}>
-                  <Icon name="event-busy" size={48} color="#ccc" />
-                  <Text style={styles.emptyText}>No attendance records found</Text>
-                  <Text style={styles.emptySubText}>for {months[selectedMonth]} {selectedYear}</Text>
-                </View>
-              )}
-            </ScrollView>
+            {/* Month Picker Modal */}
+            <MonthYearPicker
+                visible={showMonthPicker}
+                onClose={() => setShowMonthPicker(false)}
+                items={months}
+                selectedValue={selectedMonth}
+                onSelect={setSelectedMonth}
+                title="Select Month"
+            />
+
+            {/* Year Picker Modal */}
+            <MonthYearPicker
+                visible={showYearPicker}
+                onClose={() => setShowYearPicker(false)}
+                items={years}
+                selectedValue={selectedYear}
+                onSelect={setSelectedYear}
+                title="Select Year"
+            />
           </View>
-
-          {/* Month Picker Modal */}
-          <MonthYearPicker
-            visible={showMonthPicker}
-            onClose={() => setShowMonthPicker(false)}
-            items={months}
-            selectedValue={selectedMonth}
-            onSelect={setSelectedMonth}
-            title="Select Month"
-          />
-
-          {/* Year Picker Modal */}
-          <MonthYearPicker
-            visible={showYearPicker}
-            onClose={() => setShowYearPicker(false)}
-            items={years}
-            selectedValue={selectedYear}
-            onSelect={setSelectedYear}
-            title="Select Year"
-          />
         </View>
-      </View>
-    </Modal>
+      </Modal>
   );
 };
 
