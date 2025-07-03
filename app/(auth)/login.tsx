@@ -1,5 +1,5 @@
 import React from "react";
-import { ActivityIndicator, Image, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { ActivityIndicator, Image, KeyboardAvoidingView, Platform, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import styles from '../styles';
 import faceimage from '../../assets/images/face.png';
 import { loginUser } from '../viewmodels/login-viewmodel';
@@ -14,6 +14,11 @@ export default function Login() {
     const [isLoading, setIsLoading] = React.useState(false);
     const router = useRouter();
 
+    const isValidEmail = (email: string) => {
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        return emailRegex.test(email);
+    };
+
     const togglePasswordVisibility = () => {
         setShowPassword(!showPassword);
     };
@@ -21,6 +26,10 @@ export default function Login() {
     const handleLogin = async () => {
         if (!email || !password) {
             setErrorMessage('Please fill all fields');
+            return;
+        }
+        if (!isValidEmail(email)) {
+            setErrorMessage('Please enter a valid email address');
             return;
         }
 
@@ -59,8 +68,13 @@ export default function Login() {
     };
 
     return (
-        <View style={[styles.container, { justifyContent: 'flex-start' }]}>
-            <View style={styles.topSection}>
+        <KeyboardAvoidingView
+            style={styles.container}
+            behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        >
+           
+             <View style={[styles.container, { justifyContent: 'flex-start' }]}>
+                <View style={styles.topSection}>
                 <Image
                     source={faceimage}
                     style={styles.image}
@@ -115,5 +129,7 @@ export default function Login() {
                 )}
             </TouchableOpacity>
         </View>
+                </KeyboardAvoidingView>
+        
     );
 }
