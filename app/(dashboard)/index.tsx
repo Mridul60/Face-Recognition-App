@@ -35,6 +35,7 @@ import { checkPunchStatus } from '../hooks/usePunchStatus';
 import { useBiometricAuth } from '../hooks/useBiometricAuth';
 import { submitPunch } from '../services/attendanceServices';
 import styles from './styles';
+import config from "../../config"
 
 installWebGeolocationPolyfill();
 
@@ -107,7 +108,7 @@ const Dashboard = () => {
                 ...(newStatus ? { punch_in_time: time } : { punch_out_time: time })
             };
 
-            const response = await fetch('http://192.168.195.5:9000/attendance/punch', {
+            const response = await fetch(config.API.ATTENDANCE_PUNCH, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
