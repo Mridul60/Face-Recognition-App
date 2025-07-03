@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef } from 'react';
+import React, { useEffect, useRef } from 'react';
 import {
   View, Text, TouchableOpacity, StyleSheet, Dimensions,
   Alert
@@ -8,7 +8,7 @@ import * as Animatable from 'react-native-animatable';
 import { CameraView, useCameraPermissions } from 'expo-camera';
 import axios from 'axios';
 
-const { width } = Dimensions.get('window');
+Dimensions.get('window');
 const OVAL_WIDTH = 260;
 const OVAL_HEIGHT = 340;
 
@@ -18,7 +18,7 @@ export const BiometricScanScreen = () => {
 
   useEffect(() => {
     if (!permission) requestPermission();
-  }, [permission]);
+  }, [permission, requestPermission]);
 
   if (!permission || !permission.granted) {
     return (
