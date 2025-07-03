@@ -79,42 +79,6 @@ const styles = StyleSheet.create({
         borderColor: '#10877d',
         zIndex: 3,
     },
-    // notchTop: {
-    //   position: 'absolute',
-    //   top: 8,
-    //   width: 60,
-    //   height: 4,
-    //   backgroundColor: '#2DD4BF',
-    //   borderRadius: 2,
-    //   zIndex: 3,
-    // },
-    // notchBottom: {
-    //   position: 'absolute',
-    //   bottom: 8,
-    //   width: 60,
-    //   height: 4,
-    //   backgroundColor: '#2DD4BF',
-    //   borderRadius: 2,
-    //   zIndex: 3,
-    // },
-    // notchLeft: {
-    //   position: 'absolute',
-    //   left: 8,
-    //   width: 4,
-    //   height: 60,
-    //   backgroundColor: '#2DD4BF',
-    //   borderRadius: 2,
-    //   zIndex: 3,
-    // },
-    // notchRight: {
-    //   position: 'absolute',
-    //   right: 8,
-    //   width: 4,
-    //   height: 60,
-    //   backgroundColor: '#2DD4BF',
-    //   borderRadius: 2,
-    //   zIndex: 3,
-    // },
     cornerTopLeft: {
         position: 'absolute',
         top: 0,
@@ -181,6 +145,19 @@ const styles = StyleSheet.create({
         fontWeight: '600',
         fontSize: 16,
     },
+    loadingOverlay: {
+        ...StyleSheet.absoluteFillObject,
+        backgroundColor: 'rgba(0,0,0,0.6)',
+        justifyContent: 'center',
+        alignItems: 'center',
+        zIndex: 10,
+    },
+    loadingText: {
+        color: '#fff',
+        fontSize: 18,
+        fontWeight: '600',
+    },
+
 });
 
 export default styles;

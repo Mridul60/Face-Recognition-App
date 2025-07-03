@@ -13,6 +13,7 @@ const BiometricScanScreen = () => {
     const [permission, requestPermission] = useCameraPermissions();
     const cameraRef = useRef<CameraView | null>(null);
     const [faceExists, setFaceExists] = useState<boolean | null>(null);
+    const [isProcessing, setIsProcessing] = useState(false);
 
     // Step 1: Check if user's face is already registered
     useEffect(() => {
@@ -33,9 +34,10 @@ const BiometricScanScreen = () => {
 
     // Step 2: Handle face capture and upload
     const handleScan = async () => {
+        if (isProcessing) return;
+        setIsProcessing(true);
         try {
             if (!cameraRef.current) return;
-
             const photo = await cameraRef.current.takePictureAsync();
             const userId = await AsyncStorage.getItem('userId');
             if (!photo?.uri || !userId) {
@@ -93,6 +95,8 @@ const BiometricScanScreen = () => {
         } catch (error) {
             console.error('Face scan failed:', error);
             Alert.alert('Error', 'Face scan failed. Try again.');
+        } finally {
+            setIsProcessing(false);
         }
     };
 
@@ -144,10 +148,16 @@ const BiometricScanScreen = () => {
                     </Text>
                 </View>
 
-                <TouchableOpacity style={styles.scanButton} onPress={handleScan}>
+                <TouchableOpacity style={[styles.scanButton, isProcessing && { opacity: 0.6 }]} onPress={handleScan} disabled={isProcessing}>
                     <Text style={styles.scanButtonText}>{faceExists ? 'VERIFY' : 'REGISTER'}</Text>
                 </TouchableOpacity>
             </View>
+            {isProcessing && (
+                <View style={styles.loadingOverlay}>
+                    <Text style={styles.loadingText}>Processing...</Text>
+                </View>
+            )}
+
         </View>
     );
 };
