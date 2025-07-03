@@ -23,6 +23,8 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import {router} from "expo-router";
 
+import { savePunchToHistory } from '../utils/attendanceUtils';
+
 installWebGeolocationPolyfill();
 Dimensions.get('window');
 
@@ -143,50 +145,6 @@ const Dashboard = () => {
         }
     };
 
-    const savePunchToHistory = async (punchType: string, timestamp: string | number | Date) => {
-    try {
-        const existingData = await AsyncStorage.getItem('attendanceHistory');
-        let attendanceHistory = existingData ? JSON.parse(existingData) : [];
-        
-        const today = new Date(timestamp);
-        const dateString = today.toLocaleDateString('en-GB'); // DD/MM/YYYY format
-        const timeString = today.toLocaleTimeString('en-US', {
-            hour: 'numeric',
-            minute: '2-digit',
-            hour12: true
-        });
-        
-        // Check if there's already an entry for today
-        const todayIndex = attendanceHistory.findIndex((record: { date: string; }) => record.date === dateString);
-        
-        if (todayIndex >= 0) {
-            // Update existing entry
-            if (punchType === 'in') {
-                attendanceHistory[todayIndex].inTime = timeString;
-                attendanceHistory[todayIndex].status = 'Present';
-            } else {
-                attendanceHistory[todayIndex].outTime = timeString;
-            }
-        } else {
-            // Create new entry
-            const newEntry = {
-                id: Date.now(),
-                date: dateString,
-                day: today.toLocaleDateString('en-US', { weekday: 'short' }),
-                inTime: punchType === 'in' ? timeString : null,
-                outTime: punchType === 'out' ? timeString : null,
-                status: 'Present',
-                isToday: true
-            };
-            attendanceHistory.unshift(newEntry); // Add to beginning
-        }
-        
-        await AsyncStorage.setItem('attendanceHistory', JSON.stringify(attendanceHistory));
-    } catch (error) {
-        console.error('Error saving punch to history:', error);
-    }
-};
-
     // Function to handle punch action
 
     const handlePunchAction = async () => {
@@ -195,8 +153,10 @@ const Dashboard = () => {
         const timeString = now.toISOString(); // Use ISO string for reliability
 
         try {
-            const newStatus = !isPunchedIn;
+            await savePunchToHistory(isPunchedIn ? 'out' : 'in', timeString);
 
+
+            const newStatus = !isPunchedIn;
             setIsPunchedIn(newStatus);
             setLastPunchTime(timeString);
 
@@ -287,7 +247,7 @@ const Dashboard = () => {
                     {isLoading ? (
                         <ActivityIndicator size="small" color="#fff"/>
                     ) : (
-                        <Icon name="fingerprint" size={28} color={isPunchedIn ? '#0xF4CE14' : "#fff"}/>
+                        <Icon name="fingerprint" size={52} color={isPunchedIn ? '#0xF4CE14' : "#fff"}/>
                     )}
                 </TouchableOpacity>
                 <Text style={styles.fingerprintText}>PUNCH {isPunchedIn ? 'OUT' : 'IN'}</Text>
@@ -348,24 +308,25 @@ const styles = StyleSheet.create({
 
     punchSection: {
         backgroundColor: '#F3F4F6',
-        flex: 0.3,
+        flex: 0.4,
         paddingVertical: 40,
         alignItems: 'center',
+        justifyContent: 'center',
         gap: 8,
     },
     punchedIn: {
         backgroundColor: '#F4CE14',
     },
     fingerprintCircle: {
-        width: 56,
-        height: 56,
-        borderRadius: 28,
+        width: 76,
+        height: 76,
+        borderRadius: 46,
         backgroundColor: '#354F52',
         alignItems: 'center',
         justifyContent: 'center',
         marginBottom: 8,
     },
-    fingerprintText: {fontSize: 14, color: '#374151', fontWeight: '600'},
+    fingerprintText: {fontSize: 16, color: '#374151', fontWeight: '700'},
     timestampText: {fontSize: 12, color: '#6B7280'},
     punchButtonDisabled: {
         backgroundColor: '#9CA3AF',

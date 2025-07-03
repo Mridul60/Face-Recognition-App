@@ -10,6 +10,7 @@ import {
 } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { savePunchToHistory } from '../utils/attendanceUtils'; // Import the utility function
 
 type AttendanceHistoryModalProps = {
   visible: boolean;
@@ -99,58 +100,40 @@ const AttendanceHistoryModal: React.FC<AttendanceHistoryModalProps> = ({ visible
     }
   ];
 
+  useEffect(() => {
+    if (visible) {
+      loadAttendanceData();
+    }
+  }, [selectedMonth, selectedYear, visible]);
+  
   const loadAttendanceData = async () => {
     try {
-      // Load from AsyncStorage or use sample data
       const storedData = await AsyncStorage.getItem('attendanceHistory');
       let attendanceHistory = storedData ? JSON.parse(storedData) : sampleData;
-      
-      // Filter data based on selected month/year
+  
       const filteredData = attendanceHistory.filter((record: { date: string; }) => {
         const dateParts = record.date.split('/');
-        const recordDate = new Date(Number(dateParts[2]), Number(dateParts[1]) - 1, Number(dateParts[0])); // DD/MM/YYYY
+        if (dateParts.length !== 3) {
+          console.warn('Invalid date format:', record.date);
+          return false;
+        }
+        const [day, month, year] = dateParts.map(Number);
+        const recordDate = new Date(year, month - 1, day);
         return recordDate.getMonth() === selectedMonth && recordDate.getFullYear() === selectedYear;
       });
-      
+  
       setAttendanceData(filteredData);
       setTotalAttendance(filteredData.filter((record: { status: string; }) => 
         record.status === 'Present' || record.status === 'Late'
       ).length);
     } catch (error) {
       console.error('Error loading attendance data:', error);
-      setAttendanceData(sampleData.slice(0, 2)); // Fallback to sample data
-      setTotalAttendance(2);
+      setAttendanceData(sampleData.slice(0, 2));
+      setTotalAttendance(3);
     }
   };
+  
 
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const storedData = await AsyncStorage.getItem('attendanceHistory');
-        const attendanceHistory = storedData ? JSON.parse(storedData) : sampleData;
-  
-        const filteredData = attendanceHistory.filter((record: { date: string }) => {
-          const [day, month, year] = record.date.split('/').map(Number);
-          return month - 1 === selectedMonth && year === selectedYear;
-        });
-  
-        setAttendanceData(filteredData);
-        setTotalAttendance(
-          filteredData.filter(
-            (record: { status: string }) =>
-              record.status === 'Present' || record.status === 'Late'
-          ).length
-        );
-      } catch (error) {
-        console.error('Error loading attendance data:', error);
-        setAttendanceData(sampleData.slice(0, 2));
-        setTotalAttendance(2);
-      }
-    };
-  
-    if (visible) fetchData();
-  }, [selectedMonth, selectedYear, visible]);
-  
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -172,50 +155,37 @@ const AttendanceHistoryModal: React.FC<AttendanceHistoryModalProps> = ({ visible
     }
   };
 
-  const handleCheckOut = (recordId: number) => {
-    Alert.alert(
-      'Check Out',
-      'Do you want to check out now?',
-      [
-        { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'Check Out',
-          onPress: async () => {
+
+const handleCheckOut = async (recordId: number) => {
+  Alert.alert(
+    'Punch Out',
+    'Do you want to punch out now?',
+    [
+      { text: 'Cancel', style: 'cancel' },
+      {
+        text: 'Punch-Out',
+        onPress: async () => {
+          try {
             const now = new Date();
-            const timeString = now.toLocaleTimeString('en-US', {
-              hour: 'numeric',
-              minute: '2-digit',
-              hour12: true
-            });
-            
-            setAttendanceData(prev => 
-              prev.map(record => 
-                record.id === recordId 
+            const timeString = await savePunchToHistory('out', now);
+
+            // Update local state to reflect the punch-out
+            setAttendanceData(prev =>
+              prev.map(record =>
+                record.id === recordId
                   ? { ...record, outTime: timeString }
                   : record
               )
             );
-
-            // Update AsyncStorage
-            try {
-              const storedData = await AsyncStorage.getItem('attendanceHistory');
-              if (storedData) {
-                const attendanceHistory = JSON.parse(storedData);
-                const updatedHistory = attendanceHistory.map((record: { id: number; }) => 
-                  record.id === recordId 
-                    ? { ...record, outTime: timeString }
-                    : record
-                );
-                await AsyncStorage.setItem('attendanceHistory', JSON.stringify(updatedHistory));
-              }
-            } catch (error) {
-              console.error('Error updating checkout time:', error);
-            }
+          } catch (error) {
+            Alert.alert('Error', 'Could not complete checkout.');
           }
-        }
-      ]
-    );
-  };
+        },
+      },
+    ]
+  );
+};
+
 
   type MonthYearPickerProps = {
     visible: boolean;
@@ -351,7 +321,7 @@ const AttendanceHistoryModal: React.FC<AttendanceHistoryModalProps> = ({ visible
                           style={styles.checkOutButton}
                           onPress={() => handleCheckOut(record.id)}
                         >
-                          <Text style={styles.checkOutButtonText}>Check Out</Text>
+                          <Text style={styles.checkOutButtonText}>Punch Out</Text>
                         </TouchableOpacity>
                       )}
                     </View>
