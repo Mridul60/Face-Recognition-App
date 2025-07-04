@@ -27,7 +27,6 @@ const BiometricScanScreen = () => {
                 const data = await res.json();
                 setFaceExists(data?.body?.exists === true);
             } catch (err) {
-                console.error("Failed to check face availability", err);
                 Alert.alert("Error", "Could not check facial data.");
             }
         })();
@@ -40,7 +39,7 @@ const BiometricScanScreen = () => {
         try {
             if (!cameraRef.current) return;
             const photo = await cameraRef.current.takePictureAsync({
-                quality: 0.5,
+                quality: 0.3,
                 skipProcessing: true
             });
             const userId = await AsyncStorage.getItem('userId');

@@ -28,8 +28,6 @@ const faceRegistrationService = () => {
         }
 
         const imagePath = file.path;
-        console.log("imagePath: ", imagePath);
-
         try {
             // Run Python script
             const pythonScriptPath = path.join(__dirname, '../../python/register_face.py');

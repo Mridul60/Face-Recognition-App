@@ -10,10 +10,10 @@ from deepface import DeepFace
 # Load environment variables from .env
 dotenv_loaded = load_dotenv()
 if not dotenv_loaded:
-    print("Error: .env file not found or could not be loaded", file=sys.stderr)
     sys.exit(1)
 
 image_path = sys.argv[1]
+employee_id = sys.argv[2]
 
 conn = mysql.connector.connect(
     host=os.getenv("DB_HOST"),
@@ -25,8 +25,8 @@ conn = mysql.connector.connect(
 cursor = conn.cursor()
 
 # MATCH WITH THE DATABASE
-cursor.execute("SELECT employeeID, face_encoding FROM face_data")
-for employeeID, encoding_blob in cursor.fetchall():
+cursor.execute("SELECT employeeID, face_encoding FROM face_data WHERE employeeID = %s", (employee_id,))
+for employeeID, face_encoding in cursor.fetchall():
     stored_image_path = f"stored_images/{employeeID}.jpg"
     if not os.path.exists(stored_image_path):
         continue

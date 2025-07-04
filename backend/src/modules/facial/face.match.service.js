@@ -9,7 +9,7 @@ const db = require('../../config/dbConfig');
 const faceMatchService = () => {
     return async function faceMatchHandler(httpRequest) {
         const file = httpRequest?.file;
-
+        const userId = httpRequest?.pathParams?.userId;
         if (!file || !file.path) {
             return {
                 statusCode: 400,
@@ -21,7 +21,7 @@ const faceMatchService = () => {
         const pythonScriptPath = path.join(__dirname, '../../python/match_face.py');
 
         try {
-            const pythonProcess = spawn('python', [pythonScriptPath, imagePath]);
+            const pythonProcess = spawn('python', [pythonScriptPath, imagePath, userId]);
 
             let output = '';
             const errorOutput = [];
