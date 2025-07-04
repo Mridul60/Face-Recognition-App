@@ -1,11 +1,13 @@
-import React from "react";
-import { ActivityIndicator, Image, KeyboardAvoidingView, Platform, Text, TextInput, TouchableOpacity, View } from 'react-native';
-import styles from '../styles';
-import faceimage from '../../assets/images/face.png';
-import { loginUser } from '../viewmodels/login-viewmodel';
-import { useRouter } from "expo-router";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import config from "../../config"
+import { useRouter } from "expo-router";
+import React from "react";
+import { ActivityIndicator, Dimensions, Image, KeyboardAvoidingView, Platform, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import faceimage from '../../assets/images/face.png';
+import config from "../../config";
+import styles from "../styles";
+import { loginUser } from '../viewmodels/login-viewmodel';
+
+const {width, height} = Dimensions.get('window');
 
 export default function Login() {
     const [email, setEmail] = React.useState('');
@@ -131,3 +133,5 @@ export default function Login() {
         
     );
 }
+
+
