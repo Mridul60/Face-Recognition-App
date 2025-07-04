@@ -39,7 +39,7 @@ const BiometricScanScreen = () => {
         try {
             if (!cameraRef.current) return;
             const photo = await cameraRef.current.takePictureAsync({
-                quality: 0.3,
+                quality: 0.5,
                 skipProcessing: true
             });
             const userId = await AsyncStorage.getItem('userId');
