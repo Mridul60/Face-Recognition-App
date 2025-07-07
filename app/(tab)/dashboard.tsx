@@ -215,12 +215,7 @@ const Dashboard = () => {
                 <Text style={styles.timestampText}>
                     Last: {lastPunchTime ? new Date(lastPunchTime).toLocaleString() : 'None'}
                 </Text>
-            </View>
-
-            <AttendanceHistoryModal
-                visible={showAttendanceHistory}
-                onClose={() => setShowAttendanceHistory(false)}
-            />
+            </View>            
         </SafeAreaView>
     );
 };

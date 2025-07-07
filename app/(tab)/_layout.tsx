@@ -29,7 +29,7 @@ export default function TabLayout() {
         name="dashboard"
         options={{
           title: 'Home',
-          tabBarIcon:  ({ color }: { color: string }) => <IconSymbol size={28} name="paperplane.fill" color={color} />,
+          tabBarIcon:  ({ color }: { color: string }) => <IconSymbol size={28} name="home" color={color} />,
         }}
       />
       
@@ -37,7 +37,9 @@ export default function TabLayout() {
         name="history"
         options={{
           title: 'History',
-          tabBarIcon: ({ color }: { color: string }) => <IconSymbol size={28} name="paperplane.fill" color={color} />,
+          tabBarIcon: ({ color }: { color: string }) => (
+            <IconSymbol name="history" color={color} size={28} />
+          ),
         }}
       />
   
