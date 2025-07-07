@@ -42,6 +42,7 @@ const BiometricScanScreen = () => {
                 quality: 0.5,
                 skipProcessing: true
             });
+            // console.log(photo);
             const userId = await AsyncStorage.getItem('userId');
             if (!photo?.uri || !userId) {
                 Alert.alert('Error', 'Camera or user ID unavailable');
@@ -54,11 +55,12 @@ const BiometricScanScreen = () => {
                 name: 'face.jpg',
                 type: 'image/jpg',
             } as any);
-
+            // console.log(formData);
             const endpoint = faceExists
                 ? config.API.FACE_MATCH(userId)
                 : config.API.FACE_REGISTER(userId);
 
+            // console.log(endpoint);
             const response = await fetch(endpoint, {
                 method: 'POST',
                 headers: {
@@ -67,8 +69,10 @@ const BiometricScanScreen = () => {
                 body: formData,
             });
 
+            console.log('response: ', response);
             const raw = await response.text();
 
+            console.log("raw: ",raw);
             let data;
             try {
                 data = JSON.parse(raw);
@@ -79,6 +83,7 @@ const BiometricScanScreen = () => {
 
             if (faceExists) {
                 if (data.body?.matched) {
+                    console.log("data.body: ", data.body);
                     Alert.alert('Success', 'Face matched. Punch recorded!');
                     router.replace('/(dashboard)');
                 } else {

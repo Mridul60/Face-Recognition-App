@@ -8,6 +8,7 @@ const db = require('../../config/dbConfig');
 
 const faceMatchService = () => {
     return async function faceMatchHandler(httpRequest) {
+        // console.log("reached match service");
         const file = httpRequest?.file;
         const userId = httpRequest?.pathParams?.userId;
         if (!file || !file.path) {
@@ -18,10 +19,15 @@ const faceMatchService = () => {
         }
 
         const imagePath = file.path;
+        // console.log(`reached image path: ${imagePath}`);
         const pythonScriptPath = path.join(__dirname, '../../python/match_face.py');
-
+        // console.log(`reached python script path: ${pythonScriptPath}`);
         try {
             const pythonProcess = spawn('python', [pythonScriptPath, imagePath, userId]);
+            // const pythonProcess = spawn(
+            //     path.join(__dirname, '../../../../.venvPython38/Scripts/python.exe'),
+            //     [pythonScriptPath, imagePath, userId]
+            // );
 
             let output = '';
             const errorOutput = [];
@@ -89,7 +95,7 @@ const faceMatchService = () => {
                     'SELECT * FROM attendance WHERE employeeID = ? AND date = ?',
                     [employeeID, date]
                 );
-
+                // console.log("existing: ", existing);
                 const punchBody = {
                     employeeID,
                     date,

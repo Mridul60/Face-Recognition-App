@@ -1,35 +1,85 @@
-####using face-recognition similar to register_face.py (takes similar time 10 seconds)
 from dotenv import load_dotenv
 import sys
 import json
 import mysql.connector
 import os
-import face_recognition
 import numpy as np
+from deepface import DeepFace
+import pickle
+import cv2
 
-# Load environment variables from .env
-dotenv_loaded = load_dotenv()
-if not dotenv_loaded:
+# === Load .env
+if not load_dotenv():
     sys.exit(1)
 
+# === Inputs
 image_path = sys.argv[1]
 employee_id = sys.argv[2]
 
+# === Load frame from image path
+frame = cv2.imread(image_path)
+if frame is None:
+    print(json.dumps({"matched": False, "error": "Invalid image path"}))
+    sys.exit(1)
+
+# === Anti-spoofing Checks
+def check_anti_spoofing(frame):
+    gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+
+    # Brightness
+    brightness = np.mean(gray)
+    brightness_ok = 50 <= brightness <= 200
+
+    # Sharpness
+    sharpness = cv2.Laplacian(gray, cv2.CV_64F).var()
+    sharpness_ok = sharpness > 100
+
+    # Texture Analysis (simple uniformity check)
+    def texture_uniformity(img):
+        hist = cv2.calcHist([img], [0], None, [256], [0, 256])
+        return np.sum(hist ** 2) / (img.shape[0] * img.shape[1]) ** 2
+    uniformity = texture_uniformity(gray)
+    texture_ok = uniformity < 0.01
+
+    # Screen reflection (rectangular contours)
+    edges = cv2.Canny(gray, 50, 150)
+    contours, _ = cv2.findContours(edges, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+    rect_count = 0
+    for cnt in contours:
+        approx = cv2.approxPolyDP(cnt, 0.02 * cv2.arcLength(cnt, True), True)
+        if len(approx) == 4 and cv2.contourArea(cnt) > 1000:
+            rect_count += 1
+    screen_spoof_ok = rect_count <= 2
+
+    spoof_detected = not (brightness_ok and sharpness_ok and texture_ok and screen_spoof_ok)
+
+    return spoof_detected, {
+        "brightness": brightness,
+        "sharpness": sharpness,
+        "uniformity": uniformity,
+        "rectangles": rect_count
+    }
+
+spoofed, spoof_details = check_anti_spoofing(frame)
+
+if spoofed:
+    print(json.dumps({
+        "matched": False,
+        "spoof_detected": True,
+        "spoof_details": spoof_details
+    }))
+    sys.exit(1)
+
+# === Proceed with Face Matching
 try:
-    # Load and encode the input image
-    if not os.path.exists(image_path):
-        raise FileNotFoundError(f"Image file not found: {image_path}")
+    captured_encoding = DeepFace.represent(
+        img_path=image_path,
+        model_name='Facenet512',
+        detector_backend='retinaface'
+    )[0]["embedding"]
 
-    input_image = face_recognition.load_image_file(image_path)
-    input_encodings = face_recognition.face_encodings(input_image)
+    captured_encoding = np.array(captured_encoding)
 
-    if not input_encodings:
-        print(json.dumps({"matched": False, "error": "No face detected in input image"}))
-        sys.exit()
-
-    input_encoding = input_encodings[0]
-
-    # Connect to database
     conn = mysql.connector.connect(
         host=os.getenv("DB_HOST"),
         user=os.getenv("DB_USER"),
@@ -37,31 +87,38 @@ try:
         database=os.getenv("DB_DATABASE")
     )
     cursor = conn.cursor()
+    cursor.execute("SELECT employeeID, face_encoding FROM face_data WHERE employeeID = %s", (employee_id,))
 
-    # Get stored encoding for the specific employee
-    cursor.execute("SELECT face_encoding FROM face_data WHERE employeeID = %s", (employee_id,))
-    result = cursor.fetchone()
+    for emp_id, enc_blob in cursor.fetchall():
+        try:
+            if isinstance(enc_blob, bytes):
+                stored_encoding = pickle.loads(enc_blob)
+            else:
+                stored_encoding = np.array(json.loads(enc_blob))
 
-    if not result:
-        print(json.dumps({"matched": False, "error": "No face data found for employee"}))
-        sys.exit()
+            stored_encoding = np.array(stored_encoding)
 
-    # Convert stored encoding string back to numpy array
-    stored_encoding_str = result[0]
-    stored_encoding = np.array([float(x) for x in stored_encoding_str.split(',')])
+            dot = np.dot(captured_encoding, stored_encoding)
+            norm1 = np.linalg.norm(captured_encoding)
+            norm2 = np.linalg.norm(stored_encoding)
+            cosine_distance = 1 - (dot / (norm1 * norm2))
 
-    # Compare faces using face_recognition
-    matches = face_recognition.compare_faces([stored_encoding], input_encoding, tolerance=0.6)
-    face_distances = face_recognition.face_distance([stored_encoding], input_encoding)
+            if cosine_distance < 0.4:
+                print(json.dumps({
+                    "matched": True,
+                    "user_id": emp_id,
+                    "confidence": float(1 - cosine_distance),
+                    "spoof_detected": False
+                }))
+                sys.exit(0)
 
-    if matches[0] and face_distances[0] < 0.6:
-        print(json.dumps({"matched": True, "user_id": employee_id, "confidence": float(1 - face_distances[0])}))
-    else:
-        print(json.dumps({"matched": False, "distance": float(face_distances[0])}))
+        except Exception:
+            continue
+
+    print(json.dumps({"matched": False, "spoof_detected": False}))
 
 except Exception as e:
     print(json.dumps({"matched": False, "error": str(e)}))
-    sys.exit(1)
 
 finally:
     try:
@@ -69,102 +126,3 @@ finally:
         conn.close()
     except:
         pass
-
-# #### optimised deepface (20 seconds)
-# from dotenv import load_dotenv
-# import sys
-# import json
-# import mysql.connector
-# import os
-# from deepface import DeepFace
-#
-# # Load environment variables from .env
-# dotenv_loaded = load_dotenv()
-# if not dotenv_loaded:
-#     sys.exit(1)
-#
-# image_path = sys.argv[1]
-# employee_id = sys.argv[2]
-#
-# try:
-#     conn = mysql.connector.connect(
-#         host=os.getenv("DB_HOST"),
-#         user=os.getenv("DB_USER"),
-#         password=os.getenv("DB_PASS"),
-#         database=os.getenv("DB_DATABASE")
-#     )
-#     cursor = conn.cursor()
-#
-#     # Check if stored image exists for the specific employee
-#     stored_image_path = f"stored_images/{employee_id}.jpg"
-#     if not os.path.exists(stored_image_path):
-#         print(json.dumps({"matched": False, "error": "No stored image found for employee"}))
-#         sys.exit()
-#
-#     # Use faster detector backend and model
-#     result = DeepFace.verify(
-#         img1_path=image_path,
-#         img2_path=stored_image_path,
-#         detector_backend='opencv',  # Much faster than retinaface
-#         model_name='VGG-Face',      # Faster than default ArcFace
-#         distance_metric='cosine',
-#         enforce_detection=False     # Skip if face not detected instead of throwing error
-#     )
-#
-#     # More lenient threshold for faster processing
-#     if result["verified"] and result["distance"] < 0.5:
-#         print(json.dumps({"matched": True, "user_id": employee_id, "confidence": float(1 - result["distance"])}))
-#     else:
-#         print(json.dumps({"matched": False, "distance": float(result["distance"])}))
-#
-# except Exception as e:
-#     print(json.dumps({"matched": False, "error": str(e)}))
-#     sys.exit(1)
-#
-# finally:
-#     try:
-#         cursor.close()
-#         conn.close()
-#     except:
-#         pass
-
-##### using deep face (takes 60 seconds)
-# from dotenv import load_dotenv
-# import sys
-# import json
-# import mysql.connector
-# import os
-# from deepface import DeepFace
-#
-# # Load environment variables from .env
-# dotenv_loaded = load_dotenv()
-# if not dotenv_loaded:
-#     sys.exit(1)
-#
-# image_path = sys.argv[1]
-# employee_id = sys.argv[2]
-#
-# conn = mysql.connector.connect(
-#     host=os.getenv("DB_HOST"),
-#     user=os.getenv("DB_USER"),
-#     password=os.getenv("DB_PASS"),
-#     database=os.getenv("DB_DATABASE")
-#
-# )
-# cursor = conn.cursor()
-#
-# # MATCH WITH THE DATABASE
-# cursor.execute("SELECT employeeID, face_encoding FROM face_data WHERE employeeID = %s", (employee_id,))
-# for employeeID, face_encoding in cursor.fetchall():
-#     stored_image_path = f"stored_images/{employeeID}.jpg"
-#     if not os.path.exists(stored_image_path):
-#         continue
-#     try:
-#         result = DeepFace.verify(img1_path=image_path, img2_path=stored_image_path, detector_backend='retinaface')
-#         if result["verified"] and result["distance"] < 0.4:
-#             print(json.dumps({"matched": True, "user_id": employeeID}))
-#             sys.exit()
-#     except Exception as e:
-#         continue
-#
-# print(json.dumps({"matched": False}))
