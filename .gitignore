@@ -122,4 +122,8 @@ yarn-error.*
 *.tsbuildinfo
 
 # @end expo-cli
+
+.vscode
+.idea
+.venvPython38
 .myenv/

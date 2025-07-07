@@ -58,13 +58,24 @@ const Dashboard = () => {
     const [lastPunchTime, setLastPunchTime] = useState<string | null>(null);
     const [isWithinOffice, setIsWithinOffice] = useState(false);
 
+    // geekworkx office
     const officeLocation = {
         latitude: 26.138415478242372,
         longitude: 91.80020770491883,
         latitudeDelta: 0.01,
         longitudeDelta: 0.01,
     };
-    const officeRadius = 100;
+
+    // //faruk's home (testing)
+    // const officeLocation = {
+    //     latitude: 26.284063268177682,
+    //     longitude: 91.0827647184976,
+    //     latitudeDelta: 0.01,
+    //     longitudeDelta: 0.01,
+    // };
+
+    // const officeRadius = 500; // for bigger radius (for testing)
+    const officeRadius = 100; // for bigger radius (for testing)
 
     useEffect(() => {
         const init = async () => {
