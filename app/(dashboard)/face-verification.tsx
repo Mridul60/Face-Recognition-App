@@ -85,14 +85,14 @@ const BiometricScanScreen = () => {
                 if (data.body?.matched) {
                     console.log("data.body: ", data.body);
                     Alert.alert('Success', 'Face matched. Punch recorded!');
-                    router.replace('/(dashboard)');
+                    router.replace('/dashboard');
                 } else {
                     Alert.alert('Failed', 'Face does not match.');
                 }
             } else {
                 if (data.body?.success) {
                     Alert.alert('Success', 'Face registered successfully!');
-                    router.replace('/(dashboard)');
+                    router.replace('/dashboard');
                 } else {
                     Alert.alert('Failed', data.body?.message || 'Registration failed');
                 }

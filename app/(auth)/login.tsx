@@ -54,7 +54,7 @@ export default function Login() {
                 const checkRes = await fetch(config.API.IS_AVAILABLE(userId));
                 const checkData = await checkRes.json();
                 if (checkRes.ok && checkData.body.exists) {
-                    router.replace('/(dashboard)');
+                    router.replace('/dashboard');
                 } else {
                     router.replace('/face-verification');
                 }
