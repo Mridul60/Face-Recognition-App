@@ -136,66 +136,103 @@ const Dashboard = () => {
         setTotalWorkHours(`${diffHours.toString().padStart(2, '0')}:${diffMinutes.toString().padStart(2, '0')}:${diffSeconds.toString().padStart(2, '0')}`);
     };
 
+    // ========MOCKED PUNCH ACTION========
     const handlePunchAction = async () => {
-        setIsLoading(true);
         const now = new Date();
-        const date = now.toISOString().split('T')[0];
         const time = now.toTimeString().split(' ')[0];
-
-        try {
-            const userId = await AsyncStorage.getItem('userId');
-            if (!userId) throw new Error("User ID not found in storage");
-
-            const newStatus = !isPunchedIn;
-            setIsPunchedIn(newStatus);
-            setLastPunchTime(time);
-
-             // Store times for today
-            if (newStatus) {
-                setInTime(time);
-                await AsyncStorage.setItem(`inTime_${date}`, time);
-            } else {
-                setOutTime(time);
-                await AsyncStorage.setItem(`outTime_${date}`, time);
-                if (inTime) {
-                    calculateWorkHours(inTime, time);
-                }
-            }
-            
-            await AsyncStorage.setItem('punchStatus', JSON.stringify(newStatus));
-            await AsyncStorage.setItem('lastPunchTime', time);
-            await savePunchToHistory(newStatus ? 'in' : 'out', now.toISOString());
-
-            const body: any = {
-                employeeID: userId,
-                date,
-                ...(newStatus ? { punch_in_time: time } : { punch_out_time: time })
-            };
-
-            const response = await fetch(config.API.ATTENDANCE_PUNCH, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify(body),
-            });
-
-            const result = await response.json();
-            console.log('Attendance response:', result);
-            Alert.alert('Success', `Punched ${newStatus ? 'In' : 'Out'} at ${now.toLocaleTimeString()}`);
-        } catch (e) {
-            console.error('Error during punch:', e);
-            Alert.alert('Error', 'Could not punch attendance.');
-        } finally {
-            setIsLoading(false);
+        const date = now.toISOString().split('T')[0];
+        const newStatus = !isPunchedIn;
+      
+        const currentInTime = inTime; // Capture value BEFORE setting state
+      
+        setIsPunchedIn(newStatus);
+        setLastPunchTime(time);
+      
+        if (newStatus) {
+          setInTime(time);
+        } else {
+          setOutTime(time);
+          if (currentInTime) {
+            calculateWorkHours(currentInTime, time);
+          }
         }
-    };
+      
+        Alert.alert('✅ Punch Successful', `Punched ${newStatus ? 'IN' : 'OUT'} at ${time}`);
+      };
+      
+    // ====================================
+    // const handlePunchAction = async () => {
+    //     setIsLoading(true);
+    //     const now = new Date();
+    //     const date = now.toISOString().split('T')[0];
+    //     const time = now.toTimeString().split(' ')[0];
 
-    const { handleBiometricAuth } = useBiometricAuth(
-        isPunchedIn,
-        isWithinOffice,
-        handlePunchAction
-    );
+    //     try {
+    //         const userId = await AsyncStorage.getItem('userId');
+    //         if (!userId) throw new Error("User ID not found in storage");
+
+    //         const newStatus = !isPunchedIn;
+    //         setIsPunchedIn(newStatus);
+    //         setLastPunchTime(time);
+
+    //          // Store times for today
+    //         if (newStatus) {
+    //             setInTime(time);
+    //             await AsyncStorage.setItem(`inTime_${date}`, time);
+    //         } else {
+    //             setOutTime(time);
+    //             await AsyncStorage.setItem(`outTime_${date}`, time);
+    //             if (inTime) {
+    //                 calculateWorkHours(inTime, time);
+    //             }
+    //         }
+            
+    //         await AsyncStorage.setItem('punchStatus', JSON.stringify(newStatus));
+    //         await AsyncStorage.setItem('lastPunchTime', time);
+    //         await savePunchToHistory(newStatus ? 'in' : 'out', now.toISOString());
+
+    //         const body: any = {
+    //             employeeID: userId,
+    //             date,
+    //             ...(newStatus ? { punch_in_time: time } : { punch_out_time: time })
+    //         };
+
+    //         const response = await fetch(config.API.ATTENDANCE_PUNCH, {
+    //             method: 'POST',
+    //             headers: {
+    //                 'Content-Type': 'application/json',
+    //             },
+    //             body: JSON.stringify(body),
+    //         });
+
+    //         const result = await response.json();
+    //         console.log('Attendance response:', result);
+    //         Alert.alert('Success', `Punched ${newStatus ? 'In' : 'Out'} at ${now.toLocaleTimeString()}`);
+    //     } catch (e) {
+    //         console.error('Error during punch:', e);
+    //         Alert.alert('Error', 'Could not punch attendance.');
+    //     } finally {
+    //         setIsLoading(false);
+    //     }
+    // };
+
+    // const { handleBiometricAuth } = useBiometricAuth(
+    //     isPunchedIn,
+    //     isWithinOffice,
+    //     handlePunchAction
+    // );
+    const handleBiometricAuth = async () => {
+        console.log("🔐 Mock biometric passed (test mode)");
+      
+        try {
+          await handlePunchAction();
+          console.log("✅ Punch successful");
+        } catch (err) {
+          console.error("❌ Punch failed:", err);
+        }
+      };
+      
+    
 
 
     const onGestureEvent = Animated.event(
@@ -258,20 +295,7 @@ const Dashboard = () => {
     return (
         <GestureHandlerRootView style={{ flex: 1 }}>
         <SafeAreaView style={styles.container}>
-            <StatusBar barStyle="light-content" backgroundColor="#374151" />
-
-            {/* <View style={styles.header}>
-                <Text style={styles.headerTitle}>Dashboard</Text>
-                <View style={styles.headerRight}>
-                    <TouchableOpacity
-                        onPress={() => setShowAttendanceHistory(true)}
-                        style={styles.historyButton}
-                    >
-                        <Icon name='history' size={24} color="#fff" />
-                    </TouchableOpacity>
-                </View>
-            </View> */}
-           
+            <StatusBar barStyle="light-content" backgroundColor="#374151" />  
             <View style={styles.mapContainer}>
                 {currentLocation ? (
                     <MapView
@@ -308,50 +332,58 @@ const Dashboard = () => {
                 <View style={styles.punchSection}>
                 {/* Swipe Button */}
 
-                <View 
-                    style={[
-                        styles.swipeContainer,
-                        isPunchedIn && styles.swipeButtonPunchedIn,
-                        !isWithinOffice && styles.swipeButtonDisabled,
-                        {width:buttonWidth}
-                    ]}
-                    
+            <View
+                style={[
+                    styles.swipeContainer,
+                    isPunchedIn ? styles.swipeOutBg : styles.swipeInBg,
+                    !isWithinOffice && styles.swipeButtonDisabled,
+                    { width: buttonWidth },
+                ]}
                 >
-                   <View style={styles.swipeTrack}>
-                        <Text style={styles.swipeTrackText}>
-                            {isLoading ? 'Processing...' : `Swipe to PUNCH-${isPunchedIn ? 'OUT' : 'IN'}`}
-                        </Text>
-                        <Icon 
-                            name="arrow-forward" 
-                            size={20} 
-                            color={!isWithinOffice ? "#ccc" : "#666"} 
-                            style={styles.swipeArrow}
-                        />
-                    </View>
-                    
-                    <PanGestureHandler
-                        onGestureEvent={onGestureEvent}
-                        onHandlerStateChange={onHandlerStateChange}
-                        enabled={isWithinOffice && !isLoading}
-                    >
-                        <Animated.View 
-                            style={[
-                                styles.swipeButton,
-                                isPunchedIn && styles.swipeButtonPunchedIn,
-                                !isWithinOffice && styles.swipeButtonDisabled,
-                                {
-                                    transform: [{ translateX }]
-                                }
-                            ]}
-                        >
-                            <Icon 
-                                name={isPunchedIn ? "logout" : "login"} 
-                                size={24} 
-                                color="#fff"
-                            />
-                        </Animated.View>
-                    </PanGestureHandler>
+                {/* Static Icons */}
+                <View style={styles.fingerprintLeft}>
+                    <Icon name="fingerprint" size={24} color={isPunchedIn ? "#0C924B" : "#fff"} />
                 </View>
+
+                <View style={styles.swipeTrack}>
+                    <Text
+                    style={[
+                        styles.swipeTrackText,
+                        { color: isPunchedIn ? "#0C924B" : "#fff" },
+                    ]}
+                    >
+                    {isLoading ? 'Processing...' : `Swipe to PUNCH-${isPunchedIn ? 'OUT' : 'IN'}`}
+                    </Text>
+                </View>
+
+                <View style={styles.arrowRight}>
+                    <Icon
+                    name={isPunchedIn ? "arrow-back" : "arrow-forward"}
+                    size={20}
+                    color={isPunchedIn ? "#0C924B" : "#fff"}
+                    />
+                </View>
+
+                {/* Swipe Button */}
+                <PanGestureHandler
+                    onGestureEvent={onGestureEvent}
+                    onHandlerStateChange={onHandlerStateChange}
+                    enabled={isWithinOffice && !isLoading}
+                >
+                    <Animated.View
+                    style={[
+                        styles.swipeButton,
+                        isPunchedIn ? styles.swipeButtonOut : styles.swipeButtonIn,
+                        {
+                        transform: [{ translateX }],
+                        },
+                    ]}
+                    >
+                    <Icon name="fingerprint" size={24} color={isPunchedIn ? "#fff" : "#0C924B"} />
+                    </Animated.View>
+                </PanGestureHandler>
+                </View>
+
 
 
                 {/* Time Stats */}
@@ -539,12 +571,43 @@ const styles = StyleSheet.create({
         shadowOpacity: 0.2,
         shadowRadius: 4,
     },
-    swipeButtonPunchedIn: {
-        backgroundColor: '#F4CE14',
-    },
     swipeButtonDisabled: {
         backgroundColor: '#9CA3AF',
     },
+    swipeInBg: {
+        backgroundColor: '#233138',
+      },
+      
+      swipeOutBg: {
+        backgroundColor: '#fff',
+        borderWidth: 1,
+        borderColor: '#0C924B',
+      },
+      
+      fingerprintLeft: {
+        position: 'absolute',
+        left: 20,
+        zIndex: 1,
+        justifyContent: 'center',
+        height: '100%',
+      },
+      
+      arrowRight: {
+        position: 'absolute',
+        right: 20,
+        zIndex: 1,
+        justifyContent: 'center',
+        height: '100%',
+      },
+      
+      swipeButtonIn: {
+        backgroundColor: '#fff',
+      },
+      
+      swipeButtonOut: {
+        backgroundColor: '#0C924B',
+      },
+      
     timeRow: {
         flexDirection: 'row',
         justifyContent: 'space-between',
