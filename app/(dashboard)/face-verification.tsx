@@ -69,10 +69,8 @@ const BiometricScanScreen = () => {
                 body: formData,
             });
 
-            console.log('response: ', response);
             const raw = await response.text();
-
-            console.log("raw: ",raw);
+            console.log("raw",raw);
             let data;
             try {
                 data = JSON.parse(raw);
@@ -80,16 +78,23 @@ const BiometricScanScreen = () => {
                 Alert.alert('Error', 'Server returned invalid response.');
                 return;
             }
-
+            console.log("data", data);
             if (faceExists) {
+                //face matching
                 if (data.body?.matched) {
-                    console.log("data.body: ", data.body);
-                    Alert.alert('Success', 'Face matched. Punch recorded!');
+                    Alert.alert('Success', data.body?.message);
+                    if (punchInOrPunchOut === 'punchIn') {
+                        await AsyncStorage.setItem('punchStatus', 'true');
+                    } else {
+                        await AsyncStorage.setItem('punchStatus', 'false');
+                    }
                     router.replace('/dashboard');
+
                 } else {
-                    Alert.alert('Failed', 'Face does not match.');
+                    Alert.alert('Failed', data.body?.message);
                 }
             } else {
+                //face registration
                 if (data.body?.success) {
                     Alert.alert('Success', 'Face registered successfully!');
                     router.replace('/dashboard');

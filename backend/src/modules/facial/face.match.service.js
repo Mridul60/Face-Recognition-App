@@ -106,7 +106,7 @@ const faceMatchService = () => {
                     body: {
                         matched: true,
                         user_id: employeeID,
-                        punchStatus: punchResult.message
+                        message: punchResult.message
                     }
                 };
             }
