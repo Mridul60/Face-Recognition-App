@@ -3,17 +3,22 @@ const path = require('path');
 const fs = require('fs');
 const PunchService = require('../attendance/punch.service');
 const CustomError = require('../../util/error');
-const punchHandler = PunchService({ CustomError, env: process.env});
+const punchHandler = PunchService({ CustomError, env: process.env });
 const db = require('../../config/dbConfig');
 
 const faceMatchService = () => {
     return async function faceMatchHandler(httpRequest) {
-        // console.log("reached match service");
+        console.log("faceMatchHandler invoked");
+
         const file = httpRequest?.file;
         const userId = httpRequest?.pathParams?.userId;
         const mode = httpRequest?.queryParams?.punchInOrPunchOut;
-        console.log("mode: ", mode);
+
+        console.log("Mode:", mode);
+        console.log("User ID:", userId);
+
         if (!file || !file.path) {
+            console.log("No file provided");
             return {
                 statusCode: 400,
                 body: { success: false, message: 'Image file is required' }
@@ -21,9 +26,11 @@ const faceMatchService = () => {
         }
 
         const imagePath = file.path;
-        // console.log(`reached image path: ${imagePath}`);
         const pythonScriptPath = path.join(__dirname, '../../python/match_face.py');
-        // console.log(`reached python script path: ${pythonScriptPath}`);
+
+        console.log("Image Path:", imagePath);
+        console.log("Python Script Path:", pythonScriptPath);
+
         try {
             const pythonProcess = spawn('python', [pythonScriptPath, imagePath, userId]);
 
@@ -31,27 +38,20 @@ const faceMatchService = () => {
             const errorOutput = [];
 
             for await (const chunk of pythonProcess.stdout) {
-                output += chunk.toString();
+                const text = chunk.toString();
+                output += text;
+                console.log("Python STDOUT:", text.trim());
             }
 
             for await (const chunk of pythonProcess.stderr) {
-                errorOutput.push(chunk.toString());
+                const errorText = chunk.toString();
+                errorOutput.push(errorText);
+                console.error("Python STDERR:", errorText.trim());
             }
 
             const exitCode = await new Promise(resolve => pythonProcess.on('close', resolve));
+            console.log("Python process exited with code:", exitCode);
 
-            if (exitCode !== 0) {
-                return {
-                    statusCode: 500,
-                    body: {
-                        success: false,
-                        message: 'Face match failed',
-                        error: errorOutput.join('')
-                    }
-                };
-            }
-
-            // Extract valid JSON from the output
             let parsed;
             try {
                 const jsonLine = output
@@ -71,7 +71,9 @@ const faceMatchService = () => {
                 }
 
                 parsed = JSON.parse(jsonLine);
+                console.log("Parsed JSON:", parsed);
             } catch (err) {
+                console.error("JSON parsing error:", err.message);
                 return {
                     statusCode: 500,
                     body: {
@@ -81,17 +83,28 @@ const faceMatchService = () => {
                     }
                 };
             }
+            if (exitCode !== 0) {
+                return {
+                    statusCode: 500,
+                    body: {
+                        success: false,
+                        message: parsed?.error || 'Face matching script failed',
+                        error: errorOutput.join('')
+                    }
+                };
+            }
 
-            if (parsed.matched && parsed.user_id) {
-                const employeeID = parsed.user_id;
+            if (parsed.matched) {
+                const employeeID = userId;
                 const now = new Date();
-                const date = now.toISOString().split('T')[0]; // yyyy-mm-dd
-                const time = now.toTimeString().split(' ')[0]; // HH:MM:SS
+                const date = now.toISOString().split('T')[0];
+                const time = now.toTimeString().split(' ')[0];
 
                 let punchBody = {
                     employeeID,
                     date
-                }
+                };
+
                 if (mode === 'punchIn') {
                     punchBody.punch_in_time = time;
                 } else {
@@ -99,8 +112,11 @@ const faceMatchService = () => {
                 }
 
                 const punchRequest = { body: punchBody };
-                // console.log('Punch request: ', punchRequest);
+                console.log("Punch request body:", punchRequest);
+
                 const punchResult = await punchHandler(punchRequest);
+                console.log("Punch result:", punchResult);
+
                 return {
                     statusCode: 200,
                     body: {
@@ -109,16 +125,28 @@ const faceMatchService = () => {
                         message: punchResult.message
                     }
                 };
+            } else {
+                console.log("Face not matched or user_id missing");
+                return {
+                    statusCode: 401,
+                    body: {
+                        matched: false,
+                        message: 'Face not matched'
+                    }
+                };
             }
 
-
         } catch (error) {
+            console.error("Internal error:", error.message);
             return {
                 statusCode: 500,
                 body: { success: false, message: 'Internal Server Error' }
             };
         } finally {
-            fs.unlink(imagePath, () => {});
+            fs.unlink(imagePath, (err) => {
+                if (err) console.error("Error deleting image:", err);
+                else console.log("Temp image deleted");
+            });
         }
     };
 };

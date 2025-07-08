@@ -80,8 +80,8 @@ const Dashboard = () => {
     useEffect(() => {
         const init = async () => {
             try {
-                await getCurrentLocation();
                 await checkPunchStatus(setIsPunchedIn, setLastPunchTime);
+                await getCurrentLocation();
             } catch (e) {
                 console.error(e);
             }
@@ -198,8 +198,14 @@ const Dashboard = () => {
 
             <View style={styles.punchSection}>
                 <TouchableOpacity style={{backgroundColor: 'cyan'}} onPress={() => {handleMarkYourAttendance(isPunchedIn)}}>
-                    <Text>Mark Your Attendance</Text>
+                    <Text>Mark Your Attendance/ { String(isPunchedIn)}</Text>
                 </TouchableOpacity>
+                <Text>
+                    Punch in: --:--
+                </Text>
+                <Text>
+                    Punch out: --:--
+                </Text>
                 <TouchableOpacity
                     style={[
                         styles.fingerprintCircle,
