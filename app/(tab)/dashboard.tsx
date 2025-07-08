@@ -56,6 +56,10 @@ const Dashboard = () => {
     const [isLoading, setIsLoading] = useState(false);
     const [lastPunchTime, setLastPunchTime] = useState<string | null>(null);
     const [isWithinOffice, setIsWithinOffice] = useState(false);
+    const [inTime, setInTime] = useState<string | null>(null);
+    const [outTime, setOutTime] = useState<string | null>(null);
+    const [totalWorkHours, setTotalWorkHours] = useState<string>("00:00:00");
+
 
     // geekworkx office
     const officeLocation = {
@@ -95,6 +99,34 @@ const Dashboard = () => {
         setCurrentLocation
     );
 
+    const loadTodaysAttendance = async () => {
+        try {
+            const today = new Date().toISOString().split('T')[0];
+            const storedInTime = await AsyncStorage.getItem(`inTime_${today}`);
+            const storedOutTime = await AsyncStorage.getItem(`outTime_${today}`);
+            
+            if (storedInTime) setInTime(storedInTime);
+            if (storedOutTime) setOutTime(storedOutTime);
+            
+            if (storedInTime && storedOutTime) {
+                calculateWorkHours(storedInTime, storedOutTime);
+            }
+        } catch (error) {
+            console.error('Error loading attendance:', error);
+        }
+    };
+
+    const calculateWorkHours = (inTime: string, outTime: string) => {
+        const inDate = new Date(`2000-01-01T${inTime}`);
+        const outDate = new Date(`2000-01-01T${outTime}`);
+        const diffMs = outDate.getTime() - inDate.getTime();
+        const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
+        const diffMinutes = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
+        const diffSeconds = Math.floor((diffMs % (1000 * 60)) / 1000);
+        
+        setTotalWorkHours(`${diffHours.toString().padStart(2, '0')}:${diffMinutes.toString().padStart(2, '0')}:${diffSeconds.toString().padStart(2, '0')}`);
+    };
+
     const handlePunchAction = async () => {
         setIsLoading(true);
         const now = new Date();
@@ -108,6 +140,19 @@ const Dashboard = () => {
             const newStatus = !isPunchedIn;
             setIsPunchedIn(newStatus);
             setLastPunchTime(time);
+
+             // Store times for today
+            if (newStatus) {
+                setInTime(time);
+                await AsyncStorage.setItem(`inTime_${date}`, time);
+            } else {
+                setOutTime(time);
+                await AsyncStorage.setItem(`outTime_${date}`, time);
+                if (inTime) {
+                    calculateWorkHours(inTime, time);
+                }
+            }
+            
             await AsyncStorage.setItem('punchStatus', JSON.stringify(newStatus));
             await AsyncStorage.setItem('lastPunchTime', time);
             await savePunchToHistory(newStatus ? 'in' : 'out', now.toISOString());
@@ -143,6 +188,25 @@ const Dashboard = () => {
         handlePunchAction
     );
 
+    const getCurrentDate = () => {
+        const now = new Date();
+        const options = { 
+            weekday: 'long' as const,
+            year: 'numeric' as const,
+            month: 'long' as const,
+            day: 'numeric' as const
+        };
+        return now.toLocaleDateString('en-US', options);
+    };
+
+    const getCurrentTime = () => {
+        return new Date().toLocaleTimeString('en-US', { 
+            hour12: false,
+            hour: '2-digit',
+            minute: '2-digit'
+        });
+    };
+
     return (
         <SafeAreaView style={styles.container}>
             <StatusBar barStyle="light-content" backgroundColor="#374151" />
@@ -158,7 +222,7 @@ const Dashboard = () => {
                     </TouchableOpacity>
                 </View>
             </View> */}
-
+           
             <View style={styles.mapContainer}>
                 {currentLocation ? (
                     <MapView
@@ -176,9 +240,9 @@ const Dashboard = () => {
                             }
                         }}
                     >
-                        <Marker coordinate={officeLocation} pinColor="red" title="Office" />
+                        <Marker coordinate={officeLocation} pinColor="#0c924b" title="Office" />
                         <Circle center={officeLocation} radius={officeRadius} strokeColor="#3B82F6" fillColor="rgba(59,130,246,0.1)" />
-                        <Marker coordinate={currentLocation} pinColor="blue" title="You" />
+                        <Marker coordinate={currentLocation} pinColor="red" title="You" />
                     </MapView>
                 ) : (
                     <View style={styles.loadingContainer}>
@@ -187,11 +251,9 @@ const Dashboard = () => {
                     </View>
                 )}
 
-                    <View style={styles.officeCard}>
-                        <Text style={styles.officeLabel}>Geekworkx Office</Text>
-                        <TouchableOpacity onPress={() => mapRef.current?.animateToRegion(officeLocation, 800)}>
-                            <Text style={styles.officeName}>Good Morning</Text>
-                        </TouchableOpacity>
+                    <View style={styles.datetext}>
+                        <Text style={styles.datemonth}>{getCurrentDate()}</Text>
+                        <Text style={styles.datenow}>{getCurrentTime()}</Text>
                     </View>
                 </View>
                 <View style={styles.punchSection}>
@@ -231,7 +293,18 @@ const styles = StyleSheet.create({
     headerTitle: {fontSize: 18, color: '#fff', fontWeight: '600'},
     headerRight: {flexDirection: 'row', alignItems: 'center', gap: 6},
     codeIcon: {color: '#fff', fontSize: 12, fontFamily: 'monospace', marginLeft: 4},
-
+   
+    dateText: {
+        fontSize: 14,
+        color: '#fff',
+        opacity: 0.9,
+    },
+    timeText: {
+        fontSize: 16,
+        color: '#fff',
+        fontWeight: '600',
+        marginTop: 2,
+    },
     mapContainer: {
         position: 'absolute',
         top: 0,
@@ -243,10 +316,10 @@ const styles = StyleSheet.create({
     map:{flex:1} ,
     loadingContainer: {flex: 1, justifyContent: 'center', alignItems: 'center'},
 
-    officeCard: {
+    datetext: {
         position: 'absolute',
-        top: 60,
-        height: 60,
+        top: 54,
+        height: 56,
         left: 20,
         right: 20,
         backgroundColor: 'rgba(255,255,255,0.9)',
@@ -259,8 +332,8 @@ const styles = StyleSheet.create({
         shadowOpacity: 0.1,
         shadowRadius: 4,
     },
-    officeLabel: {fontSize: 10, color: '#888', textTransform: 'uppercase', letterSpacing: 1},
-    officeName: {fontSize: 14, color: '#333', fontWeight: '600'},
+    datemonth: {fontSize: 14, color: '#888', textTransform: 'uppercase', letterSpacing: 1},
+    datenow: {fontSize: 14, color: '#333', fontWeight: '600'},
 
     punchSection: {
         position: 'absolute',
@@ -278,8 +351,8 @@ const styles = StyleSheet.create({
         shadowColor: '#000',
         shadowOffset: {width: 0, height: -2},
         shadowOpacity: 0.1,
-        shadowRadius: 8,
-        elevation: 8,
+        shadowRadius: 12,
+        elevation: 10,
     },
     punchedIn: {
         backgroundColor: '#F4CE14',
