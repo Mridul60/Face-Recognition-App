@@ -5,7 +5,7 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import * as Animatable from 'react-native-animatable';
 import { CameraView, useCameraPermissions } from 'expo-camera';
-import { router } from 'expo-router';
+import {router, useLocalSearchParams} from 'expo-router';
 import styles from './styles-face-verification';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import config from "../../config"
@@ -15,7 +15,7 @@ const BiometricScanScreen = () => {
     const cameraRef = useRef<CameraView | null>(null);
     const [faceExists, setFaceExists] = useState<boolean | null>(null);
     const [isProcessing, setIsProcessing] = useState(false);
-
+    const { punchInOrPunchOut } = useLocalSearchParams()
     // Step 1: Check if user's face is already registered
     useEffect(() => {
         (async () => {
@@ -57,7 +57,7 @@ const BiometricScanScreen = () => {
             } as any);
             // console.log(formData);
             const endpoint = faceExists
-                ? config.API.FACE_MATCH(userId)
+                ? config.API.FACE_MATCH(userId, punchInOrPunchOut)
                 : config.API.FACE_REGISTER(userId);
 
             // console.log(endpoint);

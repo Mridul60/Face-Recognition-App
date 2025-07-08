@@ -11,6 +11,8 @@ const faceMatchService = () => {
         // console.log("reached match service");
         const file = httpRequest?.file;
         const userId = httpRequest?.pathParams?.userId;
+        const mode = httpRequest?.queryParams?.punchInOrPunchOut;
+        console.log("mode: ", mode);
         if (!file || !file.path) {
             return {
                 statusCode: 400,
@@ -24,10 +26,6 @@ const faceMatchService = () => {
         // console.log(`reached python script path: ${pythonScriptPath}`);
         try {
             const pythonProcess = spawn('python', [pythonScriptPath, imagePath, userId]);
-            // const pythonProcess = spawn(
-            //     path.join(__dirname, '../../../../.venvPython38/Scripts/python.exe'),
-            //     [pythonScriptPath, imagePath, userId]
-            // );
 
             let output = '';
             const errorOutput = [];
@@ -90,20 +88,18 @@ const faceMatchService = () => {
                 const date = now.toISOString().split('T')[0]; // yyyy-mm-dd
                 const time = now.toTimeString().split(' ')[0]; // HH:MM:SS
 
-                // Check punch-in or punch-out
-                const existing = await db.query(
-                    'SELECT * FROM attendance WHERE employeeID = ? AND date = ?',
-                    [employeeID, date]
-                );
-                // console.log("existing: ", existing);
-                const punchBody = {
+                let punchBody = {
                     employeeID,
-                    date,
-                    punch_in_time: existing.length === 0 ? time : null,
-                    punch_out_time: existing.length > 0 && !existing[0].punch_out_time ? time : null
-                };
+                    date
+                }
+                if (mode === 'punchIn') {
+                    punchBody.punch_in_time = time;
+                } else {
+                    punchBody.punch_out_time = time;
+                }
 
                 const punchRequest = { body: punchBody };
+                // console.log('Punch request: ', punchRequest);
                 const punchResult = await punchHandler(punchRequest);
                 return {
                     statusCode: 200,

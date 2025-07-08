@@ -35,6 +35,7 @@ import { checkPunchStatus } from '../hooks/usePunchStatus';
 import { useBiometricAuth } from '../hooks/useBiometricAuth';
 import { submitPunch } from '../services/attendanceServices';
 import config from "../../config"
+import {handleMarkYourAttendance} from "../viewmodels/dashboard-viewmodel";
 
 installWebGeolocationPolyfill();
 
@@ -196,6 +197,9 @@ const Dashboard = () => {
             </View>
 
             <View style={styles.punchSection}>
+                <TouchableOpacity style={{backgroundColor: 'cyan'}} onPress={() => {handleMarkYourAttendance(isPunchedIn)}}>
+                    <Text>Mark Your Attendance</Text>
+                </TouchableOpacity>
                 <TouchableOpacity
                     style={[
                         styles.fingerprintCircle,
