@@ -187,15 +187,14 @@ const Dashboard = () => {
                     </View>
                 )}
 
-                <View style={styles.officeCard}>
-                    <Text style={styles.officeLabel}>Geekworkx Office</Text>
-                    <TouchableOpacity onPress={() => mapRef.current?.animateToRegion(officeLocation, 800)}>
-                        <Text style={styles.officeName}>Good Morning</Text>
-                    </TouchableOpacity>
+                    <View style={styles.officeCard}>
+                        <Text style={styles.officeLabel}>Geekworkx Office</Text>
+                        <TouchableOpacity onPress={() => mapRef.current?.animateToRegion(officeLocation, 800)}>
+                            <Text style={styles.officeName}>Good Morning</Text>
+                        </TouchableOpacity>
+                    </View>
                 </View>
-            </View>
-
-            <View style={styles.punchSection}>
+                <View style={styles.punchSection}>
                 <TouchableOpacity
                     style={[
                         styles.fingerprintCircle,
@@ -215,7 +214,8 @@ const Dashboard = () => {
                 <Text style={styles.timestampText}>
                     Last: {lastPunchTime ? new Date(lastPunchTime).toLocaleString() : 'None'}
                 </Text>
-            </View>            
+                </View>            
+
         </SafeAreaView>
     );
 };
@@ -232,13 +232,21 @@ const styles = StyleSheet.create({
     headerRight: {flexDirection: 'row', alignItems: 'center', gap: 6},
     codeIcon: {color: '#fff', fontSize: 12, fontFamily: 'monospace', marginLeft: 4},
 
-    mapContainer: {flex: 1},
-    map: {flex: 1},
+    mapContainer: {
+        position: 'absolute',
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
+        // Map takes full screen
+    },
+    map:{flex:1} ,
     loadingContainer: {flex: 1, justifyContent: 'center', alignItems: 'center'},
 
     officeCard: {
         position: 'absolute',
-        bottom: 60,
+        top: 60,
+        height: 60,
         left: 20,
         right: 20,
         backgroundColor: 'rgba(255,255,255,0.9)',
@@ -255,11 +263,23 @@ const styles = StyleSheet.create({
     officeName: {fontSize: 14, color: '#333', fontWeight: '600'},
 
     punchSection: {
-        backgroundColor: '#F3F4F6',
-        flex: 0.3,
+        position: 'absolute',
+        bottom: 0,
+        left: 0,
+        right: 0,
+        backgroundColor: 'rgba(243, 244, 246, 0.95)', // Semi-transparent
+        borderTopLeftRadius: 45,
+        borderTopRightRadius: 45,
         paddingVertical: 40,
         alignItems: 'center',
         gap: 8,
+        minHeight: 200,
+        // Add subtle shadow
+        shadowColor: '#000',
+        shadowOffset: {width: 0, height: -2},
+        shadowOpacity: 0.1,
+        shadowRadius: 8,
+        elevation: 8,
     },
     punchedIn: {
         backgroundColor: '#F4CE14',
