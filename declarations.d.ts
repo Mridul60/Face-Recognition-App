@@ -3,10 +3,10 @@ declare module '*.png'
     const content: number;
     export default content;
 }
+// declarations.d.ts
 declare module '*.svg' {
     import * as React from 'react';
-    import { SvgProps } from 'react-native-svg';
-    const content: React.FC<SvgProps>;
+    const content: React.FC<React.SVGProps<SVGSVGElement>>;
     export default content;
   }
   

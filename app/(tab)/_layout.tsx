@@ -18,7 +18,7 @@ export default function TabLayout() {
   const colorScheme = useColorScheme();
   
 
-  const CustomHeaderWithLogo = ({ title }: { title: string }) => {
+  function CustomHeaderWithLogo() {
     const insets = useSafeAreaInsets();
     const colors = Colors['light']; // only light mode for now
   
@@ -35,22 +35,22 @@ export default function TabLayout() {
           },
         ]}
       >
-        <Logo width={142} height={79} /> {/* SVG Logo */}
+        <Logo width={142} height={79} /> 
         <View
           style={{
-            width: 40,
-            height: 40,
+            width: 35,
+            height: 35,
             borderRadius: 40,
             backgroundColor: "#fff", // or any bg
             alignItems: 'center',
             justifyContent: 'center',
           }}
         >
-          <PersonIcon width={30} height={30}  />
+          <PersonIcon width={24} height={24}  />
         </View>
       </View>
     );
-  };
+  }
   
 
 
@@ -74,25 +74,26 @@ export default function TabLayout() {
       <Tabs.Screen
         name="dashboard"
         options={{
-          title: 'Home',
-          header: ({ options }: { options: { title?: string } }) => (
-            <CustomHeaderWithLogo title={options.title || 'Home'} />
-          ),
+          header: () => <CustomHeaderWithLogo />,
           tabBarIcon: ({ color }: { color: string }) => (
-            <IconSymbol size={28} name="home" color={color} />
+            <IconSymbol size={30} name="home" color={color} />
           ),
         }}
       />
       
       <Tabs.Screen
-        name="history"
-        options={{
-          title: 'History',
-          tabBarIcon: ({ color }: { color: string }) => (
-            <IconSymbol name="history" color={color} size={28} />
-          ),
-        }}
-      />
+          name="history"
+          options={{
+            title: 'History',
+            headerStyle: {
+              backgroundColor: Colors[colorScheme ?? 'light'].tint, // custom green
+            },
+            headerTintColor: '#fff', // makes the title and back button white
+            tabBarIcon: ({ color }: { color: string }) => (
+              <IconSymbol name="history" color={color} size={30} />
+            ),
+          }}
+        />
   
       </Tabs>
 
