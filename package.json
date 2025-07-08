@@ -51,6 +51,7 @@
     "expo-web-browser": "~14.2.0",
     "express": "^5.1.0",
     "express-fileupload": "^1.5.1",
+    "fs": "^0.0.1-security",
     "jsonwebtoken": "^9.0.2",
     "multer": "^2.0.1",
     "mysql2": "^3.14.1",
@@ -76,10 +77,12 @@
   },
   "devDependencies": {
     "@babel/core": "^7.25.2",
+    "@svgr/webpack": "^8.1.0",
     "@types/react": "~19.0.10",
     "@types/react-native-vector-icons": "^6.4.18",
     "eslint": "^9.25.0",
     "eslint-config-expo": "~9.2.0",
+    "react-native-svg-transformer": "^1.5.1",
     "typescript": "~5.8.3"
   },
   "private": true
