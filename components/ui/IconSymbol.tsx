@@ -22,5 +22,11 @@ export function IconSymbol({
   size: number;
 }) {
   const Icon = iconsMap[name];
-  return Icon ? <Icon width={size} height={size} fill={color} /> : null;
+  
+  if (!Icon) {
+    console.warn(`Icon "${name}" not found`);
+    return null;
+  }
+
+  return Icon ? <Icon width={size} height={size} color={color} /> : null;
 }

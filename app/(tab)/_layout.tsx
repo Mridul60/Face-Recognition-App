@@ -1,14 +1,60 @@
 import { Tabs } from 'expo-router';
 import React from 'react';
-import { Platform } from 'react-native';
+import { Platform, View , Image, Text, StyleSheet} from 'react-native';
 import { HapticTab } from '@/components/HapticTab';
 import { IconSymbol } from '@/components/ui/IconSymbol';
 import TabBarBackground from '@/components/ui/TabBarBackground';
 import { Colors } from '@/constants/Colors';
 import { useColorScheme } from '@/hooks/useColorScheme';
+import { styles } from '@/app/(tab)/styles';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import Logo from '@/assets/icons/logo.svg';
+import PersonIcon from '@/assets/icons/person.svg';
+
+
+
 
 export default function TabLayout() {
   const colorScheme = useColorScheme();
+  
+
+  const CustomHeaderWithLogo = ({ title }: { title: string }) => {
+    const insets = useSafeAreaInsets();
+    const colors = Colors['light']; // only light mode for now
+  
+    return (
+      <View
+        style={[
+          styles.customHeader,
+          {
+            paddingTop: Platform.OS === 'ios' ? insets.top : 10,
+            backgroundColor: colors.tint,
+            flexDirection: 'row',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+          },
+        ]}
+      >
+        <Logo width={142} height={79} /> {/* SVG Logo */}
+        <View
+          style={{
+            width: 40,
+            height: 40,
+            borderRadius: 40,
+            backgroundColor: "#fff", // or any bg
+            alignItems: 'center',
+            justifyContent: 'center',
+          }}
+        >
+          <PersonIcon width={30} height={30}  />
+        </View>
+      </View>
+    );
+  };
+  
+
+
+// In your TabLayout:
 
   return (
     <Tabs
@@ -29,7 +75,12 @@ export default function TabLayout() {
         name="dashboard"
         options={{
           title: 'Home',
-          tabBarIcon:  ({ color }: { color: string }) => <IconSymbol size={28} name="home" color={color} />,
+          header: ({ options }: { options: { title?: string } }) => (
+            <CustomHeaderWithLogo title={options.title || 'Home'} />
+          ),
+          tabBarIcon: ({ color }: { color: string }) => (
+            <IconSymbol size={28} name="home" color={color} />
+          ),
         }}
       />
       
