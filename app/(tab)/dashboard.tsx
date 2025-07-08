@@ -9,7 +9,8 @@ import {
     Dimensions,
     SafeAreaView,
     ActivityIndicator,
-    StyleSheet
+    StyleSheet,
+    Animated
 } from 'react-native';
 
 // Map-related components
@@ -35,6 +36,10 @@ import { checkPunchStatus } from '../hooks/usePunchStatus';
 import { useBiometricAuth } from '../hooks/useBiometricAuth';
 import { submitPunch } from '../services/attendanceServices';
 import config from "../../config"
+import { Gesture, GestureHandlerRootView, PanGestureHandlerGestureEvent,PanGestureHandler, State } from 'react-native-gesture-handler';
+import * as Haptics from 'expo-haptics';
+import { GestureStateChangeEvent, PanGestureHandlerEventPayload } from 'react-native-gesture-handler';
+
 
 installWebGeolocationPolyfill();
 
@@ -61,6 +66,10 @@ const Dashboard = () => {
     const [totalWorkHours, setTotalWorkHours] = useState<string>("00:00:00");
 
 
+     // Swipe animation values
+     const translateX = useRef(new Animated.Value(0)).current;
+     const swipeThreshold = width * 0.6; // 60% of screen width to trigger
+     const buttonWidth = width - 40; // Account for horizontal padding
     // geekworkx office
     const officeLocation = {
         latitude: 26.138415478242372,
@@ -188,6 +197,45 @@ const Dashboard = () => {
         handlePunchAction
     );
 
+
+    const onGestureEvent = Animated.event(
+        [{ nativeEvent: { translationX: translateX } }],
+        {
+          useNativeDriver: false,
+          listener: (event: PanGestureHandlerGestureEvent) => {
+            const clampedX = Math.max(0, Math.min(event.nativeEvent.translationX, buttonWidth - 60));
+            translateX.setValue(clampedX);
+          },
+        }
+      );
+      
+    // Handle swipe gesture state changes
+
+
+    const onHandlerStateChange = ({ nativeEvent }: PanGestureHandlerGestureEvent) => {
+        const { state, translationX } = nativeEvent;
+        if (state === State.END) {
+          if (translationX >= swipeThreshold && isWithinOffice && !isLoading) {
+            Animated.timing(translateX, {
+              toValue: buttonWidth - 60,
+              duration: 200,
+              useNativeDriver: false,
+            }).start(() => {
+              handleBiometricAuth();
+              Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success)
+
+
+            });
+          } else {
+            Animated.spring(translateX, {
+              toValue: 0,
+              useNativeDriver: false,
+            }).start();
+          }
+        }
+      };
+      
+    
     const getCurrentDate = () => {
         const now = new Date();
         const options = { 
@@ -208,6 +256,7 @@ const Dashboard = () => {
     };
 
     return (
+        <GestureHandlerRootView style={{ flex: 1 }}>
         <SafeAreaView style={styles.container}>
             <StatusBar barStyle="light-content" backgroundColor="#374151" />
 
@@ -257,28 +306,73 @@ const Dashboard = () => {
                     </View>
                 </View>
                 <View style={styles.punchSection}>
-                <TouchableOpacity
+                {/* Swipe Button */}
+
+                <View 
                     style={[
-                        styles.fingerprintCircle,
-                        isPunchedIn && styles.punchedIn,
-                        !isWithinOffice && styles.punchButtonDisabled
+                        styles.swipeContainer,
+                        isPunchedIn && styles.swipeButtonPunchedIn,
+                        !isWithinOffice && styles.swipeButtonDisabled,
+                        {width:buttonWidth}
                     ]}
-                    onPress={handleBiometricAuth}
-                    disabled={!isWithinOffice || isLoading}
+                    
                 >
-                    {isLoading ? (
-                        <ActivityIndicator size="small" color="#fff" />
-                    ) : (
-                        <Icon name="fingerprint" size={28} color={isPunchedIn ? '#0xF4CE14' : "#fff"} />
-                    )}
-                </TouchableOpacity>
-                <Text style={styles.fingerprintText}>PUNCH {isPunchedIn ? 'OUT' : 'IN'}</Text>
-                <Text style={styles.timestampText}>
-                    Last: {lastPunchTime ? new Date(lastPunchTime).toLocaleString() : 'None'}
-                </Text>
+                   <View style={styles.swipeTrack}>
+                        <Text style={styles.swipeTrackText}>
+                            {isLoading ? 'Processing...' : `Swipe to PUNCH-${isPunchedIn ? 'OUT' : 'IN'}`}
+                        </Text>
+                        <Icon 
+                            name="arrow-forward" 
+                            size={20} 
+                            color={!isWithinOffice ? "#ccc" : "#666"} 
+                            style={styles.swipeArrow}
+                        />
+                    </View>
+                    
+                    <PanGestureHandler
+                        onGestureEvent={onGestureEvent}
+                        onHandlerStateChange={onHandlerStateChange}
+                        enabled={isWithinOffice && !isLoading}
+                    >
+                        <Animated.View 
+                            style={[
+                                styles.swipeButton,
+                                isPunchedIn && styles.swipeButtonPunchedIn,
+                                !isWithinOffice && styles.swipeButtonDisabled,
+                                {
+                                    transform: [{ translateX }]
+                                }
+                            ]}
+                        >
+                            <Icon 
+                                name={isPunchedIn ? "logout" : "login"} 
+                                size={24} 
+                                color="#fff"
+                            />
+                        </Animated.View>
+                    </PanGestureHandler>
+                </View>
+
+
+                {/* Time Stats */}
+                <View style={styles.timeRow}>
+                    <View style={styles.timeBlock}>
+                        <Icon name="login" size={20} color="#0C924B" />
+                        <Text style={styles.timeLabel}>IN-TIME</Text>
+                        <Text style={styles.timeValue}>{inTime || "XX:XX:XX"}</Text>
+                    </View>
+                    <View style={styles.timeBlock}>
+                        <Icon name="logout" size={20} color="#0C924B" />
+                        <Text style={styles.timeLabel}>OUT-TIME</Text>
+                        <Text style={styles.timeValue}>{outTime || "XX:XX:XX"}</Text>
+                    </View>
+                </View>
+
+                <Text style={styles.totalTime}>TOTAL WORK-HOUR {totalWorkHours}</Text>
                 </View>            
 
         </SafeAreaView>
+    </GestureHandlerRootView>
     );
 };
 const styles = StyleSheet.create({
@@ -382,6 +476,113 @@ const styles = StyleSheet.create({
         padding: 8,
         borderRadius: 20,
         backgroundColor: 'rgba(255, 255, 255, 0.1)',
+    },
+    bottomSection: {
+        backgroundColor: '#f8f9fa',
+        paddingHorizontal: 20,
+        paddingVertical: 25,
+        borderTopLeftRadius: 20,
+        borderTopRightRadius: 20,
+        elevation: 5,
+        shadowColor: '#000',
+        shadowOffset: {width: 0, height: -2},
+        shadowOpacity: 0.1,
+        shadowRadius: 10,
+    },
+    swipeContainer: {
+        height: 60,
+        backgroundColor: '#e9ecef',
+        borderRadius: 30,
+        marginBottom: 20,
+        position: 'relative',
+        justifyContent: 'center',
+        elevation: 2,
+        shadowColor: '#000',
+        shadowOffset: {width: 0, height: 1},
+        shadowOpacity: 0.1,
+        shadowRadius: 2,
+    },
+    swipeContainerDisabled: {
+        backgroundColor: '#f8f9fa',
+        opacity: 0.6,
+    },
+    swipeTrack: {
+        flex: 1,
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'center',
+        paddingHorizontal: 70, // Space for button
+    },
+    swipeTrackText: {
+        fontSize: 16,
+        color: '#666',
+        fontWeight: '600',
+        flex: 1,
+        textAlign: 'center',
+    },
+    swipeArrow: {
+        marginLeft: 10,
+    },
+    swipeButton: {
+        position: 'absolute',
+        left: 5,
+        top: 5,
+        width: 50,
+        height: 50,
+        borderRadius: 25,
+        backgroundColor: '#354F52',
+        justifyContent: 'center',
+        alignItems: 'center',
+        elevation: 4,
+        shadowColor: '#000',
+        shadowOffset: {width: 0, height: 2},
+        shadowOpacity: 0.2,
+        shadowRadius: 4,
+    },
+    swipeButtonPunchedIn: {
+        backgroundColor: '#F4CE14',
+    },
+    swipeButtonDisabled: {
+        backgroundColor: '#9CA3AF',
+    },
+    timeRow: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        marginBottom: 15,
+    },
+    timeBlock: {
+        flex: 1,
+        alignItems: 'center',
+        backgroundColor: '#fff',
+        padding: 15,
+        borderRadius: 10,
+        marginHorizontal: 5,
+        elevation: 2,
+        shadowColor: '#000',
+        shadowOffset: {width: 0, height: 1},
+        shadowOpacity: 0.1,
+        shadowRadius: 2,
+    },
+    timeLabel: {
+        fontSize: 12,
+        color: '#666',
+        marginTop: 5,
+        fontWeight: '600',
+        textTransform: 'uppercase',
+    },
+    timeValue: {
+        fontSize: 16,
+        color: '#333',
+        fontWeight: 'bold',
+        marginTop: 5,
+    },
+    totalTime: {
+        fontSize: 14,
+        color: '#333',
+        textAlign: 'center',
+        fontWeight: '600',
+        textTransform: 'uppercase',
+        letterSpacing: 1,
     },
 });
 
