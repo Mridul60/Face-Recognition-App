@@ -9,7 +9,8 @@ import {
     Dimensions,
     SafeAreaView,
     ActivityIndicator,
-    StyleSheet
+    StyleSheet,
+    Animated
 } from 'react-native';
 
 // Map-related components
@@ -36,6 +37,11 @@ import { useBiometricAuth } from '../hooks/useBiometricAuth';
 
 import {getPunchInAndOutTime, submitPunch} from '../services/attendanceServices';
 import config from "../../config"
+import { Gesture, GestureHandlerRootView, PanGestureHandlerGestureEvent,PanGestureHandler, State } from 'react-native-gesture-handler';
+import * as Haptics from 'expo-haptics';
+import SwipeButton from 'rn-swipe-button';
+import { IconSymbol } from '@/components/ui/IconSymbol';
+
 import {handleMarkYourAttendance} from "../viewmodels/dashboard-viewmodel";
 
 installWebGeolocationPolyfill();
@@ -60,7 +66,15 @@ const Dashboard = () => {
     const [isLoading, setIsLoading] = useState(false);
     const [lastPunchTime, setLastPunchTime] = useState<string | null>(null);
     const [isWithinOffice, setIsWithinOffice] = useState(false);
+    const [inTime, setInTime] = useState<string | null>(null);
+    const [outTime, setOutTime] = useState<string | null>(null);
+    const [totalWorkHours, setTotalWorkHours] = useState<string>("--:--:--");
 
+
+     // Swipe animation values
+     const translateX = useRef(new Animated.Value(0)).current;
+     const swipeThreshold = width * 0.6; // 60% of screen width to trigger
+     const buttonWidth = width - 40; // Account for horizontal padding
     // geekworkx office
     const officeLocation = {
         latitude: 26.138415478242372,
@@ -103,6 +117,35 @@ const Dashboard = () => {
         setCurrentLocation
     );
 
+    const loadTodaysAttendance = async () => {
+        try {
+            const today = new Date().toISOString().split('T')[0];
+            const storedInTime = await AsyncStorage.getItem(`inTime_${today}`);
+            const storedOutTime = await AsyncStorage.getItem(`outTime_${today}`);
+            
+            if (storedInTime) setInTime(storedInTime);
+            if (storedOutTime) setOutTime(storedOutTime);
+            
+            if (storedInTime && storedOutTime) {
+                calculateWorkHours(storedInTime, storedOutTime);
+            }
+        } catch (error) {
+            console.error('Error loading attendance:', error);
+        }
+    };
+
+    const calculateWorkHours = (inTime: string, outTime: string) => {
+        const inDate = new Date(`2000-01-01T${inTime}`);
+        const outDate = new Date(`2000-01-01T${outTime}`);
+        const diffMs = outDate.getTime() - inDate.getTime();
+        const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
+        const diffMinutes = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
+        const diffSeconds = Math.floor((diffMs % (1000 * 60)) / 1000);
+        
+        setTotalWorkHours(`${diffHours.toString().padStart(2, '0')}:${diffMinutes.toString().padStart(2, '0')}:${diffSeconds.toString().padStart(2, '0')}`);
+    };
+
+      
     const handlePunchAction = async () => {
         setIsLoading(true);
         const now = new Date();
@@ -116,6 +159,19 @@ const Dashboard = () => {
             const newStatus = !isPunchedIn;
             setIsPunchedIn(newStatus);
             setLastPunchTime(time);
+
+             // Store times for today
+            if (newStatus) {
+                setInTime(time);
+                await AsyncStorage.setItem(`inTime_${date}`, time);
+            } else {
+                setOutTime(time);
+                await AsyncStorage.setItem(`outTime_${date}`, time);
+                if (inTime) {
+                    calculateWorkHours(inTime, time);
+                }
+            }
+            
             await AsyncStorage.setItem('punchStatus', JSON.stringify(newStatus));
             await AsyncStorage.setItem('lastPunchTime', time);
             await savePunchToHistory(newStatus ? 'in' : 'out', now.toISOString());
@@ -150,24 +206,40 @@ const Dashboard = () => {
         isWithinOffice,
         handlePunchAction
     );
+    
+      
+    
+
+
+      const maxTranslation = buttonWidth - 60;
+      
+      
+           
+    
+    const getCurrentDate = () => {
+        const now = new Date();
+        const options = { 
+            weekday: 'long' as const,
+            year: 'numeric' as const,
+            month: 'long' as const,
+            day: 'numeric' as const
+        };
+        return now.toLocaleDateString('en-US', options);
+    };
+
+    const getCurrentTime = () => {
+        return new Date().toLocaleTimeString('en-US', { 
+            hour12: false,
+            hour: '2-digit',
+            minute: '2-digit'
+        });
+    };
 
     return (
+        <GestureHandlerRootView style={{ flex: 1 }}>
         <SafeAreaView style={styles.container}>
-            <StatusBar barStyle="light-content" backgroundColor="#374151" />
-
-            {/* <View style={styles.header}>
-                <Text style={styles.headerTitle}>Dashboard</Text>
-                <View style={styles.headerRight}>
-                    <TouchableOpacity
-                        onPress={() => setShowAttendanceHistory(true)}
-                        style={styles.historyButton}
-                    >
-                        <Icon name='history' size={24} color="#fff" />
-                    </TouchableOpacity>
-                </View>
-            </View> */}
-
-            <View style={styles.mapContainer}>
+            <StatusBar barStyle="light-content" backgroundColor="#374151" />  
+            <View style={styles.mapWrapper}>
                 {currentLocation ? (
                     <MapView
                         ref={mapRef}
@@ -178,15 +250,15 @@ const Dashboard = () => {
                             if (mapRef.current) {
                                 mapRef.current.animateToRegion({
                                     ...currentLocation,
-                                    latitudeDelta: 0.01,
-                                    longitudeDelta: 0.01,
+                                    latitudeDelta: 0.001,
+                                    longitudeDelta: 0.001,
                                 }, 800);
                             }
                         }}
                     >
-                        <Marker coordinate={officeLocation} pinColor="red" title="Office" />
+                        <Marker coordinate={officeLocation} pinColor="#0c924b" title="Office" />
                         <Circle center={officeLocation} radius={officeRadius} strokeColor="#3B82F6" fillColor="rgba(59,130,246,0.1)" />
-                        <Marker coordinate={currentLocation} pinColor="blue" title="You" />
+                        <Marker coordinate={currentLocation} pinColor="red" title="You" />
                     </MapView>
                 ) : (
                     <View style={styles.loadingContainer}>
@@ -195,45 +267,98 @@ const Dashboard = () => {
                     </View>
                 )}
 
-                <View style={styles.officeCard}>
-                    <Text style={styles.officeLabel}>Geekworkx Office</Text>
-                    <TouchableOpacity onPress={() => mapRef.current?.animateToRegion(officeLocation, 800)}>
-                        <Text style={styles.officeName}>Good Morning</Text>
-                    </TouchableOpacity>
+                    <View style={styles.datetext}>
+                        <Text style={styles.datemonth}>{getCurrentDate()}</Text>
+                        <Text style={styles.datenow}>{getCurrentTime()}</Text>
+                    </View>
                 </View>
-            </View>
-
-            <View style={styles.punchSection}>
-                <TouchableOpacity style={{backgroundColor: 'cyan'}} onPress={() => {handleMarkYourAttendance(isPunchedIn)}}>
-                    <Text>Mark Your Attendance/ { String(isPunchedIn)}</Text>
-                </TouchableOpacity>
-                <Text>
-                    Punch in: {punchInTime}
-                </Text>
-                <Text>
-                    Punch out: {punchOutTime}
-                </Text>
-                <TouchableOpacity
-                    style={[
-                        styles.fingerprintCircle,
-                        isPunchedIn && styles.punchedIn,
-                        !isWithinOffice && styles.punchButtonDisabled
-                    ]}
-                    onPress={handleBiometricAuth}
-                    disabled={!isWithinOffice || isLoading}
+                <View style={styles.punchSection}>
+                {/* Swipe Button */}
+            <View
+                style={[
+                    styles.swipeContainer,
+                    !isWithinOffice && styles.swipeButtonDisabled,
+                    { width: buttonWidth },
+                ]}
                 >
-                    {isLoading ? (
-                        <ActivityIndicator size="small" color="#fff" />
-                    ) : (
-                        <Icon name="fingerprint" size={28} color={isPunchedIn ? '#0xF4CE14' : "#fff"} />
+                 <SwipeButton
+                    disabled={!isWithinOffice || isLoading}
+                    swipeSuccessThreshold={70}
+                    railBackgroundColor={isPunchedIn ? '#fff' : '#233138'}
+                    railBorderColor="transparent" // Remove visual border clash
+                    railFillBackgroundColor={isPunchedIn ? '#0C924B' : '#fff'}
+                    thumbIconBackgroundColor="transparent" // handled manually inside thumbIconComponent
+                    thumbIconComponent={() => (
+                        <View
+                        style={{
+                            width: 46,
+                            height: 46,
+                            borderRadius: 30,
+                            backgroundColor: isPunchedIn ? '#fff' : '#0C924B',
+                            justifyContent: 'center',
+                            alignItems: 'center',
+                            borderWidth: 2,
+                            borderColor: isPunchedIn ? '#0C924B' : '#0C924B',
+                        }}
+                        >
+                        <Icon
+                            name="fingerprint"
+                            size={28}
+                            color={isPunchedIn ? '#0C924B' : '#fff'}
+                        />
+                        </View>
                     )}
-                </TouchableOpacity>
-                <Text style={styles.fingerprintText}>PUNCH {isPunchedIn ? 'OUT' : 'IN'}</Text>
-                <Text style={styles.timestampText}>
-                    Last: {lastPunchTime ? new Date(lastPunchTime).toLocaleString() : 'None'}
-                </Text>
-            </View>            
+                    title={isLoading ? 'Processing...' : isPunchedIn ? 'Swipe to PUNCH-OUT' : 'Swipe to PUNCH-IN'}
+                    titleStyles={{
+                        fontSize: 13,
+                        fontWeight: '600',
+                    }}
+                    titleColor={isPunchedIn ? '#0C924B' : '#fff'}
+                    shouldResetAfterSuccess={true}
+                    onSwipeSuccess={async () => {
+                        await handleBiometricAuth();
+                        Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+                    }}
+                    containerStyles={{
+                        borderWidth: 1, // <— THIS controls border thickness
+                        borderColor: isPunchedIn ? '#0C924B' : 'transparent',
+                        borderRadius: 46,
+                        backgroundColor: 'red',
+                        height: 56,
+                      }}
+                    
+                    />
+
+                </View>
+
+
+
+                {/* Time Stats */}
+                <View style={styles.timecontainer}>
+                    <View style={styles.topRow}>
+                        <View style={[styles.timebox, { borderRightWidth: 1 }]}>
+                        <View style={styles.row}>
+                            <IconSymbol name = "intime" size = {16} color = "#1c1c1c" />
+                            <Text style={styles.label}> IN-TIME</Text>
+                        </View>
+                        <Text style={styles.timeText}>{inTime||"--:--:--"}</Text>
+                        </View>
+                        <View style={styles.timebox}>
+                        <View style={styles.row}>
+                            <IconSymbol name="outtime" size={16} color="#1C1C1E" />
+                            <Text style={styles.label}> OUT-TIME</Text>
+                        </View>
+                        <Text style={styles.timeText}>{outTime||"--:--:--"}</Text>
+                        </View>
+                    </View>
+                    <View style={styles.totalBox}>
+                        <Text style={styles.label}>TOTAL WORK-HOUR</Text>
+                        <Text style={styles.timeText}>{totalWorkHours}</Text>
+                    </View>
+                </View>           
+            </View>
         </SafeAreaView>
+    </GestureHandlerRootView>
     );
 };
 const styles = StyleSheet.create({
@@ -248,14 +373,41 @@ const styles = StyleSheet.create({
     headerTitle: {fontSize: 18, color: '#fff', fontWeight: '600'},
     headerRight: {flexDirection: 'row', alignItems: 'center', gap: 6},
     codeIcon: {color: '#fff', fontSize: 12, fontFamily: 'monospace', marginLeft: 4},
-
-    mapContainer: {flex: 1},
-    map: {flex: 1},
+   
+    dateText: {
+        fontSize: 14,
+        color: '#fff',
+        opacity: 0.9,
+    },
+    timeText: {
+        fontSize: 16,
+        color: '#1c1c1c',
+        fontWeight: '800',
+        marginTop: 2,
+        alignContent: 'center',
+        textAlign: 'center',
+    },
+    mapWrapper: {
+        flex: 1,
+        marginBottom: 200,
+        overflow: 'hidden',
+        borderRadius: 20,
+      },
+    mapContainer: {
+        position: 'absolute',
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
+        // Map takes full screen
+    },
+    map:{flex:1,overflow: 'hidden'},
     loadingContainer: {flex: 1, justifyContent: 'center', alignItems: 'center'},
 
-    officeCard: {
+    datetext: {
         position: 'absolute',
-        bottom: 60,
+        top: 54,
+        height: 56,
         left: 20,
         right: 20,
         backgroundColor: 'rgba(255,255,255,0.9)',
@@ -268,29 +420,29 @@ const styles = StyleSheet.create({
         shadowOpacity: 0.1,
         shadowRadius: 4,
     },
-    officeLabel: {fontSize: 10, color: '#888', textTransform: 'uppercase', letterSpacing: 1},
-    officeName: {fontSize: 14, color: '#333', fontWeight: '600'},
+    datemonth: {fontSize: 14, color: '#888', textTransform: 'uppercase', letterSpacing: 1},
+    datenow: {fontSize: 14, color: '#333', fontWeight: '600'},
 
     punchSection: {
-        backgroundColor: '#F3F4F6',
-        flex: 0.3,
+        position: 'absolute',
+        bottom: 0,
+        left: 0,
+        right: 0,
+        backgroundColor: 'rgba(243, 244, 246, 0.95)', // Semi-transparent
+        borderTopLeftRadius: 45,
+        borderTopRightRadius: 45,
         paddingVertical: 40,
         alignItems: 'center',
         gap: 8,
+        minHeight: 200,
+        // Add subtle shadow
+        shadowColor: '#000',
+        shadowOffset: {width: 0, height: -2},
+        shadowOpacity: 0.1,
+        shadowRadius: 12,
+        elevation: 10,
     },
-    punchedIn: {
-        backgroundColor: '#F4CE14',
-    },
-    fingerprintCircle: {
-        width: 56,
-        height: 56,
-        borderRadius: 28,
-        backgroundColor: '#354F52',
-        alignItems: 'center',
-        justifyContent: 'center',
-        marginBottom: 8,
-    },
-    fingerprintText: {fontSize: 14, color: '#374151', fontWeight: '600'},
+   
     timestampText: {fontSize: 12, color: '#6B7280'},
     punchButtonDisabled: {
         backgroundColor: '#9CA3AF',
@@ -307,6 +459,82 @@ const styles = StyleSheet.create({
         borderRadius: 20,
         backgroundColor: 'rgba(255, 255, 255, 0.1)',
     },
+    bottomSection: {
+        backgroundColor: '#f8f9fa',
+        paddingHorizontal: 20,
+        paddingVertical: 25,
+        borderTopLeftRadius: 20,
+        borderTopRightRadius: 20,
+        elevation: 5,
+        shadowColor: '#000',
+        shadowOffset: {width: 0, height: -2},
+        shadowOpacity: 0.1,
+        shadowRadius: 10,
+    },
+    swipeContainer: {
+        height: 52,
+        borderRadius: 30,
+        marginBottom: 20,
+        justifyContent: 'center',
+        backgroundColor: 'transparent', // prevents bleed
+      },
+      
+      
+   
+  
+  
+ 
+    swipeButtonDisabled: {
+        backgroundColor: '#9CA3AF',
+    },
+   
+      
+      
+      
+    timecontainer: {
+        backgroundColor: '#cad2c5',
+        borderTopLeftRadius: 16,
+        borderTopRightRadius: 16,
+        
+        padding: 16,
+        width: '90%',
+        alignSelf: 'center',
+        marginTop: 20,
+        elevation: 4, // Android shadow
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.2,
+        shadowRadius: 4,
+    },
+    topRow:{
+    
+        flexDirection: 'row',
+        justifyContent: 'space-between',   
+    },
+    timebox: { 
+       
+        borderColor: '#3E4F47',
+        flex: 1,
+        alignItems: 'center',
+        paddingVertical: 10,
+    },
+    totalBox: {
+        borderTopWidth: 1,
+        borderColor: '#3E4F47',
+        paddingVertical: 16,
+        alignItems: 'center',
+      },
+      row: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        marginBottom: 4,
+      },
+      label: {
+        fontWeight: '700',
+        color: '#1C1C1E',
+        fontSize: 12,
+      },
+
 });
 
 

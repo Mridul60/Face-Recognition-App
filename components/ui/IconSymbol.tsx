@@ -4,12 +4,17 @@ import HistoryIcon from '@/assets/icons/history.svg';
 import ProfileIcon from '@/assets/icons/person.svg';
 import TeamAttendance from '@/assets/icons/fluent--shifts-team-24-filled.svg'
 import Dashboard from '@/assets/icons/material-symbols--home-rounded.svg'
+import WorkInTime from '@/assets/icons/mdi--timer-play.svg'
+import WorkOutTime from '@/assets/icons/mdi--timer-stop.svg'
+
 
 const iconsMap: Record<string, any> = {
   history: HistoryIcon,
   profile: ProfileIcon,
   team: TeamAttendance,
   home: Dashboard,
+  intime: WorkInTime,
+  outtime: WorkOutTime, 
 };
 
 export function IconSymbol({

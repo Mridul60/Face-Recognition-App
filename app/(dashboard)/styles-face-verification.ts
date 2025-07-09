@@ -1,7 +1,14 @@
-import {Dimensions, StyleSheet} from 'react-native';
+import {Dimensions, Platform, StyleSheet} from 'react-native';
+import {useSafeAreaInsets} from 'react-native-safe-area-context';
+import {Colors} from '@/constants/Colors';
+import React from 'react';
+import {useColorScheme} from '@/hooks/useColorScheme';
+
 const {width} = Dimensions.get('window');
 const OVAL_WIDTH = 260;
 const OVAL_HEIGHT = 340;
+const colors = Colors['light']; // only light mode for now
+  
 const styles = StyleSheet.create({
     centered: {
         flex: 1,
@@ -13,11 +20,14 @@ const styles = StyleSheet.create({
         backgroundColor: '#ffffff',
     },
     header: {
-        backgroundColor: '#2F3E46',
-        padding: 16,
+        height: Platform.OS === 'ios' ? 76 : 60,
+        paddingHorizontal: 16,
+        borderBottomWidth: 1,
+        backgroundColor: colors.tint,
         flexDirection: 'row',
-        justifyContent: 'space-between',
+        justifyContent: 'space-evenly',
         alignItems: 'center',
+        padding: 16,
     },
     headerTitle: {
         color: '#D1D5DB',
@@ -135,7 +145,7 @@ const styles = StyleSheet.create({
         textAlign: 'center',
     },
     scanButton: {
-        backgroundColor: '#52796f',
+        backgroundColor: Colors['light'].tint,
         paddingVertical: 10,
         paddingHorizontal: 28,
         borderRadius: 8,

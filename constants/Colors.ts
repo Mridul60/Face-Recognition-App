@@ -9,6 +9,8 @@ export const Colors = {
     icon: '#6E6E73',                // neutral gray for inactive icons
     tabIconDefault: '#6E6E73',      // default icon color (gray)
     tabIconSelected: tintColorLight,// selected icon (green)
+    accentcolor : '#cad2c5',
+    accentborder : '#A4B0A7	'
   },
   dark: {
     text: '#F2F2F7',                // light text on dark background
@@ -17,5 +19,7 @@ export const Colors = {
     icon: '#9BA1A6',                // subtle gray for icons in dark mode
     tabIconDefault: '#9BA1A6',
     tabIconSelected: tintColorDark,
+    accentcolor : '#4B5E52',
+    accentborder : '#3E4F47'
   },
 };
