@@ -13,7 +13,7 @@ const {
 } = require("../modules/facial");
 
 const {
-  punchHandler
+  punchHandler, getAttendanceHandler
 } = require("../modules/attendance");
 
 const {
@@ -52,6 +52,13 @@ router.post("/attendance/punch", async (req, res) => {
   const result = await punchHandler(httpRequest);
   return sendResponse(res, result);
 });
+
+//get attendance
+router.get("/attendance/get", async (req, res) => {
+  const httpRequest = adaptRequest(req);
+  const result = await getAttendanceHandler(httpRequest);
+  return sendResponse(res, result);
+})
 
 // Face registration
 router.post("/face/register/:userId", upload.single('image'), async (req, res) => {

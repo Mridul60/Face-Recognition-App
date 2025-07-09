@@ -56,16 +56,6 @@ const faceRegistrationService = () => {
                     }
                 };
             }
-
-            encoding = encoding.trim(); // just in case
-
-            // const query = `
-            //     INSERT INTO face_data (employeeID, face_encoding)
-            //     VALUES (?, ?) ON DUPLICATE KEY
-            //     UPDATE face_encoding = ?
-            // `;
-            // await db.query(query, [userId, encoding, encoding]);
-
             return {
                 statusCode: 200,
                 body: {success: true, message: 'Face encoding stored successfully'}

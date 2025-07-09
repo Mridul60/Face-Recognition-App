@@ -1,12 +1,12 @@
 import React, { useEffect, useRef, useState } from 'react';
 import {
-    View, Text, TouchableOpacity, StyleSheet, Alert,
+    View, Text, TouchableOpacity, StyleSheet, Alert, Image
     Platform,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import * as Animatable from 'react-native-animatable';
 import { CameraView, useCameraPermissions } from 'expo-camera';
-import { router } from 'expo-router';
+import { router, useLocalSearchParams } from 'expo-router';
 import styles from './styles-face-verification';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import config from "../../config"
@@ -18,8 +18,25 @@ const BiometricScanScreen = () => {
     const cameraRef = useRef<CameraView | null>(null);
     const [faceExists, setFaceExists] = useState<boolean | null>(null);
     const [isProcessing, setIsProcessing] = useState(false);
-    const insets = useSafeAreaInsets();
-    // Step 1: Check if user's face is already registered
+    const insets = useSafeAreaInsets();   
+    const [capturedPhotoUri, setCapturedPhotoUri] = useState<string | null>(null);
+    const { punchInOrPunchOut } = useLocalSearchParams();
+
+    // New states for animated status text
+    const [baseStatusText, setBaseStatusText] = useState<string | null>(null);
+    const [dotCount, setDotCount] = useState<number>(0);
+
+    // Animate dots while baseStatusText is shown
+    useEffect(() => {
+        if (!baseStatusText) return;
+
+        const interval = setInterval(() => {
+            setDotCount((prev) => (prev + 1) % 4); // cycle 0 to 3
+        }, 500);
+
+        return () => clearInterval(interval);
+    }, [baseStatusText]);
+
     useEffect(() => {
         (async () => {
             const userId = await AsyncStorage.getItem('userId');
@@ -30,22 +47,25 @@ const BiometricScanScreen = () => {
                 const data = await res.json();
                 setFaceExists(data?.body?.exists === true);
             } catch (err) {
-                Alert.alert("Error", "Could not check facial data.");
+                Alert.alert('Error', 'Could not check facial data.');
             }
         })();
     }, []);
 
-    // Step 2: Handle face capture and upload
     const handleScan = async () => {
         if (isProcessing) return;
         setIsProcessing(true);
+        setBaseStatusText(faceExists ? 'Verifying' : 'Registering');
+
         try {
             if (!cameraRef.current) return;
             const photo = await cameraRef.current.takePictureAsync({
                 quality: 0.5,
-                skipProcessing: true
+                skipProcessing: true,
             });
-            // console.log(photo);
+
+            setCapturedPhotoUri(photo.uri);
+
             const userId = await AsyncStorage.getItem('userId');
             if (!photo?.uri || !userId) {
                 Alert.alert('Error', 'Camera or user ID unavailable');
@@ -58,12 +78,11 @@ const BiometricScanScreen = () => {
                 name: 'face.jpg',
                 type: 'image/jpg',
             } as any);
-            // console.log(formData);
+
             const endpoint = faceExists
-                ? config.API.FACE_MATCH(userId)
+                ? config.API.FACE_MATCH(userId, punchInOrPunchOut)
                 : config.API.FACE_REGISTER(userId);
 
-            // console.log(endpoint);
             const response = await fetch(endpoint, {
                 method: 'POST',
                 headers: {
@@ -72,10 +91,7 @@ const BiometricScanScreen = () => {
                 body: formData,
             });
 
-            console.log('response: ', response);
             const raw = await response.text();
-
-            console.log("raw: ",raw);
             let data;
             try {
                 data = JSON.parse(raw);
@@ -86,11 +102,11 @@ const BiometricScanScreen = () => {
 
             if (faceExists) {
                 if (data.body?.matched) {
-                    console.log("data.body: ", data.body);
-                    Alert.alert('Success', 'Face matched. Punch recorded!');
+                    Alert.alert('Success', data.body?.message);
+                    await AsyncStorage.setItem('punchStatus', punchInOrPunchOut === 'punchIn' ? 'true' : 'false');
                     router.replace('/dashboard');
                 } else {
-                    Alert.alert('Failed', 'Face does not match.');
+                    Alert.alert('Failed', data.body?.message);
                 }
             } else {
                 if (data.body?.success) {
@@ -103,12 +119,16 @@ const BiometricScanScreen = () => {
 
         } catch (error) {
             Alert.alert('Error', 'Face scan failed. Try again.');
+            setCapturedPhotoUri(null); // Clear stuck photo
+            setBaseStatusText(null);   // Clear status
+            setDotCount(0);
         } finally {
             setIsProcessing(false);
+            setBaseStatusText(null);
+            setDotCount(0);
         }
     };
 
-    // Step 3: Handle camera permission
     if (!permission || !permission.granted) {
         return (
             <View style={styles.centered}>
@@ -127,10 +147,24 @@ const BiometricScanScreen = () => {
             </View>
 
             <View style={styles.content}>
-                <Text style={styles.title}>{faceExists ? 'Align Your Face to Verify' : 'Align Your Face to Register'}</Text>
+                <Text style={styles.title}>
+                    {faceExists ? 'Align Your Face to Verify' : 'Align Your Face to Register'}
+                </Text>
 
                 <View style={styles.scanArea}>
-                    <CameraView ref={cameraRef} style={StyleSheet.absoluteFill} facing="front" />
+                    {capturedPhotoUri ? (
+                        <Image
+                            source={{ uri: capturedPhotoUri }}
+                            style={[StyleSheet.absoluteFill, { transform: [{ scaleX: -1 }] }]}
+                            resizeMode="cover"
+                        />
+                    ) : (
+                        <CameraView
+                            ref={cameraRef}
+                            style={StyleSheet.absoluteFill}
+                            facing="front"
+                        />
+                    )}
 
                     <Animatable.View
                         animation="pulse"
@@ -139,7 +173,6 @@ const BiometricScanScreen = () => {
                         duration={1400}
                         style={styles.dottedOval}
                     />
-
                     <View style={styles.ovalBorder} pointerEvents="none" />
                     <View style={styles.cornerTopLeft} />
                     <View style={styles.cornerTopRight} />
@@ -149,20 +182,29 @@ const BiometricScanScreen = () => {
 
                 <View style={styles.instructionCard}>
                     <Text style={styles.instructionText}>
-                        Position your face within the frame and keep still.
+                        Please align your face and ensure you are in a well-lit environment.
                     </Text>
                 </View>
 
-                <TouchableOpacity style={[styles.scanButton, isProcessing && { opacity: 0.6 }]} onPress={handleScan} disabled={isProcessing}>
+                {/* ⬇️ Dynamic verifying/registering bouncing dots */}
+                {baseStatusText && (
+                    <Animatable.Text
+                        animation="fadeIn"
+                        duration={400}
+                        style={styles.statusText}
+                    >
+                        {`${baseStatusText}${'.'.repeat(dotCount)}`}
+                    </Animatable.Text>
+                )}
+
+                <TouchableOpacity
+                    style={[styles.scanButton, isProcessing && { opacity: 0.6 }]}
+                    onPress={handleScan}
+                    disabled={isProcessing}
+                >
                     <Text style={styles.scanButtonText}>{faceExists ? 'VERIFY' : 'REGISTER'}</Text>
                 </TouchableOpacity>
             </View>
-            {isProcessing && (
-                <View style={styles.loadingOverlay}>
-                    <Text style={styles.loadingText}>Processing...</Text>
-                </View>
-            )}
-
         </View>
     );
 };
