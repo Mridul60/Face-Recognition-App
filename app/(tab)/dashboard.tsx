@@ -65,7 +65,7 @@ const Dashboard = () => {
     const [isWithinOffice, setIsWithinOffice] = useState(false);
     const [inTime, setInTime] = useState<string | null>(null);
     const [outTime, setOutTime] = useState<string | null>(null);
-    const [totalWorkHours, setTotalWorkHours] = useState<string>("00:00:00");
+    const [totalWorkHours, setTotalWorkHours] = useState<string>("--:--:--");
 
 
      // Swipe animation values
@@ -138,101 +138,68 @@ const Dashboard = () => {
         setTotalWorkHours(`${diffHours.toString().padStart(2, '0')}:${diffMinutes.toString().padStart(2, '0')}:${diffSeconds.toString().padStart(2, '0')}`);
     };
 
-    // ========MOCKED PUNCH ACTION========
+      
     const handlePunchAction = async () => {
+        setIsLoading(true);
         const now = new Date();
-        const time = now.toTimeString().split(' ')[0];
         const date = now.toISOString().split('T')[0];
-        const newStatus = !isPunchedIn;
-      
-        const currentInTime = inTime; // Capture value BEFORE setting state
-      
-        setIsPunchedIn(newStatus);
-        setLastPunchTime(time);
-      
-        if (newStatus) {
-          setInTime(time);
-        } else {
-          setOutTime(time);
-          if (currentInTime) {
-            calculateWorkHours(currentInTime, time);
-          }
-        }
-      
-        Alert.alert('✅ Punch Successful', `Punched ${newStatus ? 'IN' : 'OUT'} at ${time}`);
-      };
-      
-    // ====================================
-    // const handlePunchAction = async () => {
-    //     setIsLoading(true);
-    //     const now = new Date();
-    //     const date = now.toISOString().split('T')[0];
-    //     const time = now.toTimeString().split(' ')[0];
+        const time = now.toTimeString().split(' ')[0];
 
-    //     try {
-    //         const userId = await AsyncStorage.getItem('userId');
-    //         if (!userId) throw new Error("User ID not found in storage");
-
-    //         const newStatus = !isPunchedIn;
-    //         setIsPunchedIn(newStatus);
-    //         setLastPunchTime(time);
-
-    //          // Store times for today
-    //         if (newStatus) {
-    //             setInTime(time);
-    //             await AsyncStorage.setItem(`inTime_${date}`, time);
-    //         } else {
-    //             setOutTime(time);
-    //             await AsyncStorage.setItem(`outTime_${date}`, time);
-    //             if (inTime) {
-    //                 calculateWorkHours(inTime, time);
-    //             }
-    //         }
-            
-    //         await AsyncStorage.setItem('punchStatus', JSON.stringify(newStatus));
-    //         await AsyncStorage.setItem('lastPunchTime', time);
-    //         await savePunchToHistory(newStatus ? 'in' : 'out', now.toISOString());
-
-    //         const body: any = {
-    //             employeeID: userId,
-    //             date,
-    //             ...(newStatus ? { punch_in_time: time } : { punch_out_time: time })
-    //         };
-
-    //         const response = await fetch(config.API.ATTENDANCE_PUNCH, {
-    //             method: 'POST',
-    //             headers: {
-    //                 'Content-Type': 'application/json',
-    //             },
-    //             body: JSON.stringify(body),
-    //         });
-
-    //         const result = await response.json();
-    //         console.log('Attendance response:', result);
-    //         Alert.alert('Success', `Punched ${newStatus ? 'In' : 'Out'} at ${now.toLocaleTimeString()}`);
-    //     } catch (e) {
-    //         console.error('Error during punch:', e);
-    //         Alert.alert('Error', 'Could not punch attendance.');
-    //     } finally {
-    //         setIsLoading(false);
-    //     }
-    // };
-
-    // const { handleBiometricAuth } = useBiometricAuth(
-    //     isPunchedIn,
-    //     isWithinOffice,
-    //     handlePunchAction
-    // );
-    const handleBiometricAuth = async () => {
-        console.log("🔐 Mock biometric passed (test mode)");
-      
         try {
-          await handlePunchAction();
-          console.log("✅ Punch successful");
-        } catch (err) {
-          console.error("❌ Punch failed:", err);
+            const userId = await AsyncStorage.getItem('userId');
+            if (!userId) throw new Error("User ID not found in storage");
+
+            const newStatus = !isPunchedIn;
+            setIsPunchedIn(newStatus);
+            setLastPunchTime(time);
+
+             // Store times for today
+            if (newStatus) {
+                setInTime(time);
+                await AsyncStorage.setItem(`inTime_${date}`, time);
+            } else {
+                setOutTime(time);
+                await AsyncStorage.setItem(`outTime_${date}`, time);
+                if (inTime) {
+                    calculateWorkHours(inTime, time);
+                }
+            }
+            
+            await AsyncStorage.setItem('punchStatus', JSON.stringify(newStatus));
+            await AsyncStorage.setItem('lastPunchTime', time);
+            await savePunchToHistory(newStatus ? 'in' : 'out', now.toISOString());
+
+            const body: any = {
+                employeeID: userId,
+                date,
+                ...(newStatus ? { punch_in_time: time } : { punch_out_time: time })
+            };
+
+            const response = await fetch(config.API.ATTENDANCE_PUNCH, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(body),
+            });
+
+            const result = await response.json();
+            console.log('Attendance response:', result);
+            Alert.alert('Success', `Punched ${newStatus ? 'In' : 'Out'} at ${now.toLocaleTimeString()}`);
+        } catch (e) {
+            console.error('Error during punch:', e);
+            Alert.alert('Error', 'Could not punch attendance.');
+        } finally {
+            setIsLoading(false);
         }
-      };
+    };
+
+    const { handleBiometricAuth } = useBiometricAuth(
+        isPunchedIn,
+        isWithinOffice,
+        handlePunchAction
+    );
+    
       
     
 
@@ -418,14 +385,14 @@ const Dashboard = () => {
                             <IconSymbol name = "intime" size = {16} color = "#1c1c1c" />
                             <Text style={styles.label}> IN-TIME</Text>
                         </View>
-                        <Text style={styles.timeText}>{inTime||"XX:XX:XX"}</Text>
+                        <Text style={styles.timeText}>{inTime||"--:--:--"}</Text>
                         </View>
                         <View style={styles.timebox}>
                         <View style={styles.row}>
                             <IconSymbol name="outtime" size={16} color="#1C1C1E" />
                             <Text style={styles.label}> OUT-TIME</Text>
                         </View>
-                        <Text style={styles.timeText}>{outTime||"XX:XX:XX"}</Text>
+                        <Text style={styles.timeText}>{outTime||"--:--:--"}</Text>
                         </View>
                     </View>
                     <View style={styles.totalBox}>

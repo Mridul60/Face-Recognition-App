@@ -145,7 +145,7 @@ const styles = StyleSheet.create({
         textAlign: 'center',
     },
     scanButton: {
-        backgroundColor: '#52796f',
+        backgroundColor: Colors['light'].tint,
         paddingVertical: 10,
         paddingHorizontal: 28,
         borderRadius: 8,
