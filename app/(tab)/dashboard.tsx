@@ -39,6 +39,7 @@ import config from "../../config"
 import { Gesture, GestureHandlerRootView, PanGestureHandlerGestureEvent,PanGestureHandler, State } from 'react-native-gesture-handler';
 import * as Haptics from 'expo-haptics';
 import { GestureStateChangeEvent, PanGestureHandlerEventPayload } from 'react-native-gesture-handler';
+import SwipeButton from 'rn-swipe-button';
 
 
 installWebGeolocationPolyfill();
@@ -235,43 +236,61 @@ const Dashboard = () => {
     
 
 
-    const onGestureEvent = Animated.event(
+      const maxTranslation = buttonWidth - 60;
+
+      const onGestureEvent = Animated.event(
         [{ nativeEvent: { translationX: translateX } }],
         {
           useNativeDriver: false,
           listener: (event: PanGestureHandlerGestureEvent) => {
-            const clampedX = Math.max(0, Math.min(event.nativeEvent.translationX, buttonWidth - 60));
+            const rawX = event.nativeEvent.translationX;
+            // Prevent wrong direction swipe
+            if (isPunchedIn && rawX > 0) return;  // No right swipe if punched in
+            if (!isPunchedIn && rawX < 0) return; // No left swipe if not punched in
+            const clampedX = Math.max(-maxTranslation, Math.min(rawX, maxTranslation));
             translateX.setValue(clampedX);
           },
         }
       );
+      
       
     // Handle swipe gesture state changes
 
 
     const onHandlerStateChange = ({ nativeEvent }: PanGestureHandlerGestureEvent) => {
         const { state, translationX } = nativeEvent;
-        if (state === State.END) {
-          if (translationX >= swipeThreshold && isWithinOffice && !isLoading) {
-            Animated.timing(translateX, {
-              toValue: buttonWidth - 60,
-              duration: 200,
-              useNativeDriver: false,
-            }).start(() => {
-              handleBiometricAuth();
-              Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success)
-
-
-            });
-          } else {
-            Animated.spring(translateX, {
-              toValue: 0,
-              useNativeDriver: false,
-            }).start();
-          }
+      
+        if (state !== State.END || isLoading || !isWithinOffice) return;
+      
+        const swipedRight = translationX > swipeThreshold;
+        const swipedLeft = translationX < -swipeThreshold;
+      
+        const shouldPunchIn = !isPunchedIn && swipedRight;
+        const shouldPunchOut = isPunchedIn && swipedLeft;
+      
+        if (shouldPunchIn || shouldPunchOut) {
+          const targetX = shouldPunchIn ? maxTranslation : -maxTranslation;
+      
+          Animated.timing(translateX, {
+            toValue: targetX,
+            duration: 200,
+            useNativeDriver: false,
+          }).start(async () => {
+            await handleBiometricAuth();
+            translateX.setValue(0); // Reset after punch
+            Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+          });
+        } else {
+          // Snap back if not swiped enough
+          Animated.spring(translateX, {
+            toValue: 0,
+            useNativeDriver: false,
+          }).start();
         }
       };
       
+      
+           
     
     const getCurrentDate = () => {
         const now = new Date();
@@ -331,57 +350,61 @@ const Dashboard = () => {
                 </View>
                 <View style={styles.punchSection}>
                 {/* Swipe Button */}
-
             <View
                 style={[
                     styles.swipeContainer,
-                    isPunchedIn ? styles.swipeOutBg : styles.swipeInBg,
                     !isWithinOffice && styles.swipeButtonDisabled,
                     { width: buttonWidth },
                 ]}
                 >
-                {/* Static Icons */}
-                <View style={styles.fingerprintLeft}>
-                    <Icon name="fingerprint" size={24} color={isPunchedIn ? "#0C924B" : "#fff"} />
-                </View>
-
-                <View style={styles.swipeTrack}>
-                    <Text
-                    style={[
-                        styles.swipeTrackText,
-                        { color: isPunchedIn ? "#0C924B" : "#fff" },
-                    ]}
-                    >
-                    {isLoading ? 'Processing...' : `Swipe to PUNCH-${isPunchedIn ? 'OUT' : 'IN'}`}
-                    </Text>
-                </View>
-
-                <View style={styles.arrowRight}>
-                    <Icon
-                    name={isPunchedIn ? "arrow-back" : "arrow-forward"}
-                    size={20}
-                    color={isPunchedIn ? "#0C924B" : "#fff"}
+                 <SwipeButton
+                    disabled={!isWithinOffice || isLoading}
+                    swipeSuccessThreshold={70}
+                    railBackgroundColor={isPunchedIn ? '#fff' : '#233138'}
+                    railBorderColor="transparent" // Remove visual border clash
+                    railFillBackgroundColor={isPunchedIn ? '#0C924B' : '#fff'}
+                    thumbIconBackgroundColor="transparent" // handled manually inside thumbIconComponent
+                    thumbIconComponent={() => (
+                        <View
+                        style={{
+                            width: 46,
+                            height: 46,
+                            borderRadius: 20,
+                            backgroundColor: isPunchedIn ? '#fff' : '#0C924B',
+                            justifyContent: 'center',
+                            alignItems: 'center',
+                            borderWidth: 2,
+                            borderColor: isPunchedIn ? '#0C924B' : '#0C924B',
+                        }}
+                        >
+                        <Icon
+                            name="fingerprint"
+                            size={28}
+                            color={isPunchedIn ? '#0C924B' : '#fff'}
+                        />
+                        </View>
+                    )}
+                    title={isLoading ? 'Processing...' : isPunchedIn ? 'Swipe to PUNCH-OUT' : 'Swipe to PUNCH-IN'}
+                    titleStyles={{
+                        fontSize: 13,
+                        fontWeight: '600',
+                    }}
+                    titleColor={isPunchedIn ? '#0C924B' : '#fff'}
+                    shouldResetAfterSuccess={true}
+                    onSwipeSuccess={async () => {
+                        await handleBiometricAuth();
+                        Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+                    }}
+                    containerStyles={{
+                        borderWidth: 1, // <— THIS controls border thickness
+                        borderColor: isPunchedIn ? '#0C924B' : 'transparent',
+                        borderRadius: 30,
+                        backgroundColor: 'transparent',
+                        height: 56,
+                      }}
+                    
                     />
-                </View>
 
-                {/* Swipe Button */}
-                <PanGestureHandler
-                    onGestureEvent={onGestureEvent}
-                    onHandlerStateChange={onHandlerStateChange}
-                    enabled={isWithinOffice && !isLoading}
-                >
-                    <Animated.View
-                    style={[
-                        styles.swipeButton,
-                        isPunchedIn ? styles.swipeButtonOut : styles.swipeButtonIn,
-                        {
-                        transform: [{ translateX }],
-                        },
-                    ]}
-                    >
-                    <Icon name="fingerprint" size={24} color={isPunchedIn ? "#fff" : "#0C924B"} />
-                    </Animated.View>
-                </PanGestureHandler>
                 </View>
 
 
@@ -480,19 +503,7 @@ const styles = StyleSheet.create({
         shadowRadius: 12,
         elevation: 10,
     },
-    punchedIn: {
-        backgroundColor: '#F4CE14',
-    },
-    fingerprintCircle: {
-        width: 56,
-        height: 56,
-        borderRadius: 28,
-        backgroundColor: '#354F52',
-        alignItems: 'center',
-        justifyContent: 'center',
-        marginBottom: 8,
-    },
-    fingerprintText: {fontSize: 14, color: '#374151', fontWeight: '600'},
+   
     timestampText: {fontSize: 12, color: '#6B7280'},
     punchButtonDisabled: {
         backgroundColor: '#9CA3AF',
@@ -522,66 +533,24 @@ const styles = StyleSheet.create({
         shadowRadius: 10,
     },
     swipeContainer: {
-        height: 60,
-        backgroundColor: '#e9ecef',
+        height: 52,
         borderRadius: 30,
         marginBottom: 20,
-        position: 'relative',
         justifyContent: 'center',
-        elevation: 2,
-        shadowColor: '#000',
-        shadowOffset: {width: 0, height: 1},
-        shadowOpacity: 0.1,
-        shadowRadius: 2,
-    },
-    swipeContainerDisabled: {
-        backgroundColor: '#f8f9fa',
-        opacity: 0.6,
-    },
-    swipeTrack: {
-        flex: 1,
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'center',
-        paddingHorizontal: 70, // Space for button
-    },
-    swipeTrackText: {
-        fontSize: 16,
-        color: '#666',
-        fontWeight: '600',
-        flex: 1,
-        textAlign: 'center',
-    },
-    swipeArrow: {
-        marginLeft: 10,
-    },
-    swipeButton: {
-        position: 'absolute',
-        left: 5,
-        top: 5,
-        width: 50,
-        height: 50,
-        borderRadius: 25,
-        backgroundColor: '#354F52',
-        justifyContent: 'center',
-        alignItems: 'center',
-        elevation: 4,
-        shadowColor: '#000',
-        shadowOffset: {width: 0, height: 2},
-        shadowOpacity: 0.2,
-        shadowRadius: 4,
-    },
+        backgroundColor: 'transparent', // prevents bleed
+      },
+      
+      
+   
+  
+  
+ 
     swipeButtonDisabled: {
         backgroundColor: '#9CA3AF',
     },
-    swipeInBg: {
-        backgroundColor: '#233138',
-      },
-      
-      swipeOutBg: {
+    swipeOutBg: {
         backgroundColor: '#fff',
-        borderWidth: 1,
-        borderColor: '#0C924B',
+        
       },
       
       fingerprintLeft: {
