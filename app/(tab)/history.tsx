@@ -55,8 +55,81 @@ const AttendanceHistoryScreen = () => {
       outTime: '5:14 PM',
       status: 'Late',
       isToday: false
+    },
+    {
+      id: 3,
+      date: '30/04/2025',
+      day: 'Mon',
+      inTime: '9:00 AM',
+      outTime: '4:00 PM',
+      status: 'Present',
+      isToday: false
+    },
+    {
+      id: 4,
+      date: '29/09/2025',
+      day: 'Sun',
+      inTime: null,
+      outTime: null,
+      status: 'Absent',
+      isToday: false
+    },
+    {
+      id: 5,
+      date: '28/03/2025',
+      day: 'Sat',
+      inTime: '11:00 AM',
+      outTime: '3:30 PM',
+      status: 'Late',
+      isToday: false
+    },
+    {
+      id: 6,
+      date: '27/06/2025',
+      day: 'Fri',
+      inTime: '8:45 AM',
+      outTime: '5:00 PM',
+      status: 'Present',
+      isToday: false
+    },
+    {
+      id: 7,
+      date: '26/06/2025',
+      day: 'Thu',
+      inTime: '9:30 AM',
+      outTime: null,
+      status: 'Present',
+      isToday: false
+    },
+    {
+      id: 8,
+      date: '25/06/2025',
+      day: 'Wed',
+      inTime: null,
+      outTime: null,
+      status: 'Absent',
+      isToday: false
+    },
+    {
+      id: 9,
+      date: '24/06/2025',
+      day: 'Tue',
+      inTime: '12:00 PM',
+      outTime: '4:00 PM',
+      status: 'Late',
+      isToday: false
+    },
+    {
+      id: 10,
+      date: '23/06/2025',
+      day: 'Mon',
+      inTime: '9:00 AM',
+      outTime: '5:30 PM',
+      status: 'Present',
+      isToday: false
     }
   ];
+  
 
   useEffect(() => {
     loadAttendanceData();
@@ -133,7 +206,7 @@ const AttendanceHistoryScreen = () => {
   return (
     <View style={{ flex: 1, backgroundColor: '#f5f5f5' }}>
       {/* Header */}
-      <View style={styles.header}>
+      {/* <View style={styles.header}>
         <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
           <Icon name="arrow-back" size={24} color="white" />
         </TouchableOpacity>
@@ -141,7 +214,7 @@ const AttendanceHistoryScreen = () => {
           <Text style={styles.headerTitle}>Monthly Attendance</Text>
           <Icon name="calendar-today" size={24} color="white" />
         </View>
-      </View>
+      </View> */}
 
       <View style={styles.content}>
         <Text style={styles.totalAttendance}>Total attendance: {totalAttendance}</Text>

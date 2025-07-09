@@ -38,7 +38,6 @@ import { submitPunch } from '../services/attendanceServices';
 import config from "../../config"
 import { Gesture, GestureHandlerRootView, PanGestureHandlerGestureEvent,PanGestureHandler, State } from 'react-native-gesture-handler';
 import * as Haptics from 'expo-haptics';
-import { GestureStateChangeEvent, PanGestureHandlerEventPayload } from 'react-native-gesture-handler';
 import SwipeButton from 'rn-swipe-button';
 import { IconSymbol } from '@/components/ui/IconSymbol';
 
@@ -205,57 +204,6 @@ const Dashboard = () => {
 
 
       const maxTranslation = buttonWidth - 60;
-
-      const onGestureEvent = Animated.event(
-        [{ nativeEvent: { translationX: translateX } }],
-        {
-          useNativeDriver: false,
-          listener: (event: PanGestureHandlerGestureEvent) => {
-            const rawX = event.nativeEvent.translationX;
-            // Prevent wrong direction swipe
-            if (isPunchedIn && rawX > 0) return;  // No right swipe if punched in
-            if (!isPunchedIn && rawX < 0) return; // No left swipe if not punched in
-            const clampedX = Math.max(-maxTranslation, Math.min(rawX, maxTranslation));
-            translateX.setValue(clampedX);
-          },
-        }
-      );
-      
-      
-    // Handle swipe gesture state changes
-
-
-    const onHandlerStateChange = ({ nativeEvent }: PanGestureHandlerGestureEvent) => {
-        const { state, translationX } = nativeEvent;
-      
-        if (state !== State.END || isLoading || !isWithinOffice) return;
-      
-        const swipedRight = translationX > swipeThreshold;
-        const swipedLeft = translationX < -swipeThreshold;
-      
-        const shouldPunchIn = !isPunchedIn && swipedRight;
-        const shouldPunchOut = isPunchedIn && swipedLeft;
-      
-        if (shouldPunchIn || shouldPunchOut) {
-          const targetX = shouldPunchIn ? maxTranslation : -maxTranslation;
-      
-          Animated.timing(translateX, {
-            toValue: targetX,
-            duration: 200,
-            useNativeDriver: false,
-          }).start(async () => {
-            await handleBiometricAuth();
-            translateX.setValue(0); // Reset after punch
-            Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-          });
-        } else {
-          // Snap back if not swiped enough
-          Animated.spring(translateX, {
-            toValue: 0,
-            useNativeDriver: false,
-          }).start();
-        }
-      };
       
       
            
