@@ -33,7 +33,8 @@ import { savePunchToHistory } from '../utils/attendanceUtils';
 import { useCurrentLocation } from '../hooks/useCurrentLocation';
 import { checkPunchStatus } from '../hooks/usePunchStatus';
 import { useBiometricAuth } from '../hooks/useBiometricAuth';
-import { submitPunch } from '../services/attendanceServices';
+
+import {getPunchInAndOutTime, submitPunch} from '../services/attendanceServices';
 import config from "../../config"
 import {handleMarkYourAttendance} from "../viewmodels/dashboard-viewmodel";
 
@@ -54,6 +55,8 @@ const Dashboard = () => {
 
     const [currentLocation, setCurrentLocation] = useState<LocationType>(null);
     const [isPunchedIn, setIsPunchedIn] = useState(false);
+    const [punchInTime, setPunchInTime] = useState<string>('--:--');
+    const [punchOutTime, setPunchOutTime] = useState<string>('--:--');
     const [isLoading, setIsLoading] = useState(false);
     const [lastPunchTime, setLastPunchTime] = useState<string | null>(null);
     const [isWithinOffice, setIsWithinOffice] = useState(false);
@@ -76,19 +79,23 @@ const Dashboard = () => {
 
     // const officeRadius = 500; // for bigger radius (for testing)
     const officeRadius = 100; // for bigger radius (for testing)
+    console.log("punchIntime: ", punchInTime, "out: ", punchOutTime);
 
     useEffect(() => {
         const init = async () => {
             try {
-                await checkPunchStatus(setIsPunchedIn, setLastPunchTime);
-                await getCurrentLocation();
+                await Promise.all([
+                    checkPunchStatus(setIsPunchedIn, setLastPunchTime),
+                    getCurrentLocation(),
+                    getPunchInAndOutTime(setPunchInTime, setPunchOutTime)
+                ])
             } catch (e) {
                 console.error(e);
             }
         };
         init();
     }, []);
-
+    console.log("punchIntime: ", punchInTime, "out: ", punchOutTime);
     const { getCurrentLocation } = useCurrentLocation(
         officeLocation,
         officeRadius,
@@ -201,10 +208,10 @@ const Dashboard = () => {
                     <Text>Mark Your Attendance/ { String(isPunchedIn)}</Text>
                 </TouchableOpacity>
                 <Text>
-                    Punch in: --:--
+                    Punch in: {punchInTime}
                 </Text>
                 <Text>
-                    Punch out: --:--
+                    Punch out: {punchOutTime}
                 </Text>
                 <TouchableOpacity
                     style={[

@@ -157,6 +157,33 @@ const styles = StyleSheet.create({
         fontSize: 18,
         fontWeight: '600',
     },
+    statusText: {
+        textAlign: 'center',
+        marginTop: 12,
+        fontSize: 16,
+        color: '#3B82F6',
+        fontWeight: '600',
+    },
+    retryHint: {
+        textAlign: 'center',
+        marginTop: 8,
+        fontSize: 14,
+        color: 'red',
+    },
+
+    retakeButton: {
+        marginTop: 10,
+        alignSelf: 'center',
+        backgroundColor: '#ef4444',
+        paddingHorizontal: 16,
+        paddingVertical: 8,
+        borderRadius: 10,
+    },
+
+    retakeButtonText: {
+        color: '#fff',
+        fontWeight: 'bold',
+    },
 
 });
 
