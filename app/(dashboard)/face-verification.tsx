@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import {
     View, Text, TouchableOpacity, StyleSheet, Alert,
+    Platform,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import * as Animatable from 'react-native-animatable';
@@ -9,13 +10,15 @@ import { router } from 'expo-router';
 import styles from './styles-face-verification';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import config from "../../config"
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import Logo from '@/assets/icons/GEEK-Id.svg'
 
 const BiometricScanScreen = () => {
     const [permission, requestPermission] = useCameraPermissions();
     const cameraRef = useRef<CameraView | null>(null);
     const [faceExists, setFaceExists] = useState<boolean | null>(null);
     const [isProcessing, setIsProcessing] = useState(false);
-
+    const insets = useSafeAreaInsets();
     // Step 1: Check if user's face is already registered
     useEffect(() => {
         (async () => {
@@ -119,11 +122,8 @@ const BiometricScanScreen = () => {
 
     return (
         <View style={styles.container}>
-            <View style={styles.header}>
-                <Text style={styles.headerTitle}>Facial {faceExists ? 'Verification' : 'Registration'}</Text>
-                <TouchableOpacity style={styles.closeButton} onPress={router.back}>
-                    <Ionicons name="close" size={20} color="#fff" />
-                </TouchableOpacity>
+            <View style={[ styles.header, { paddingTop: Platform.OS === 'ios' ? insets.top : 10 } ]}>
+                <Logo width={142} height={54} />
             </View>
 
             <View style={styles.content}>
