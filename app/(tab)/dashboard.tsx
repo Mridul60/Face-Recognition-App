@@ -40,6 +40,7 @@ import { Gesture, GestureHandlerRootView, PanGestureHandlerGestureEvent,PanGestu
 import * as Haptics from 'expo-haptics';
 import { GestureStateChangeEvent, PanGestureHandlerEventPayload } from 'react-native-gesture-handler';
 import SwipeButton from 'rn-swipe-button';
+import { IconSymbol } from '@/components/ui/IconSymbol';
 
 
 installWebGeolocationPolyfill();
@@ -315,7 +316,7 @@ const Dashboard = () => {
         <GestureHandlerRootView style={{ flex: 1 }}>
         <SafeAreaView style={styles.container}>
             <StatusBar barStyle="light-content" backgroundColor="#374151" />  
-            <View style={styles.mapContainer}>
+            <View style={styles.mapWrapper}>
                 {currentLocation ? (
                     <MapView
                         ref={mapRef}
@@ -326,8 +327,8 @@ const Dashboard = () => {
                             if (mapRef.current) {
                                 mapRef.current.animateToRegion({
                                     ...currentLocation,
-                                    latitudeDelta: 0.01,
-                                    longitudeDelta: 0.01,
+                                    latitudeDelta: 0.001,
+                                    longitudeDelta: 0.001,
                                 }, 800);
                             }
                         }}
@@ -369,7 +370,7 @@ const Dashboard = () => {
                         style={{
                             width: 46,
                             height: 46,
-                            borderRadius: 20,
+                            borderRadius: 30,
                             backgroundColor: isPunchedIn ? '#fff' : '#0C924B',
                             justifyContent: 'center',
                             alignItems: 'center',
@@ -398,8 +399,8 @@ const Dashboard = () => {
                     containerStyles={{
                         borderWidth: 1, // <— THIS controls border thickness
                         borderColor: isPunchedIn ? '#0C924B' : 'transparent',
-                        borderRadius: 30,
-                        backgroundColor: 'transparent',
+                        borderRadius: 46,
+                        backgroundColor: 'red',
                         height: 56,
                       }}
                     
@@ -410,22 +411,29 @@ const Dashboard = () => {
 
 
                 {/* Time Stats */}
-                <View style={styles.timeRow}>
-                    <View style={styles.timeBlock}>
-                        <Icon name="login" size={20} color="#0C924B" />
-                        <Text style={styles.timeLabel}>IN-TIME</Text>
-                        <Text style={styles.timeValue}>{inTime || "XX:XX:XX"}</Text>
+                <View style={styles.timecontainer}>
+                    <View style={styles.topRow}>
+                        <View style={[styles.timebox, { borderRightWidth: 1 }]}>
+                        <View style={styles.row}>
+                            <IconSymbol name = "intime" size = {16} color = "#1c1c1c" />
+                            <Text style={styles.label}> IN-TIME</Text>
+                        </View>
+                        <Text style={styles.timeText}>{inTime||"XX:XX:XX"}</Text>
+                        </View>
+                        <View style={styles.timebox}>
+                        <View style={styles.row}>
+                            <IconSymbol name="outtime" size={16} color="#1C1C1E" />
+                            <Text style={styles.label}> OUT-TIME</Text>
+                        </View>
+                        <Text style={styles.timeText}>{outTime||"XX:XX:XX"}</Text>
+                        </View>
                     </View>
-                    <View style={styles.timeBlock}>
-                        <Icon name="logout" size={20} color="#0C924B" />
-                        <Text style={styles.timeLabel}>OUT-TIME</Text>
-                        <Text style={styles.timeValue}>{outTime || "XX:XX:XX"}</Text>
+                    <View style={styles.totalBox}>
+                        <Text style={styles.label}>TOTAL WORK-HOUR</Text>
+                        <Text style={styles.timeText}>{totalWorkHours}</Text>
                     </View>
-                </View>
-
-                <Text style={styles.totalTime}>TOTAL WORK-HOUR {totalWorkHours}</Text>
-                </View>            
-
+                </View>           
+            </View>
         </SafeAreaView>
     </GestureHandlerRootView>
     );
@@ -450,10 +458,18 @@ const styles = StyleSheet.create({
     },
     timeText: {
         fontSize: 16,
-        color: '#fff',
-        fontWeight: '600',
+        color: '#1c1c1c',
+        fontWeight: '800',
         marginTop: 2,
+        alignContent: 'center',
+        textAlign: 'center',
     },
+    mapWrapper: {
+        flex: 1,
+        marginBottom: 200,
+        overflow: 'hidden',
+        borderRadius: 20,
+      },
     mapContainer: {
         position: 'absolute',
         top: 0,
@@ -462,7 +478,7 @@ const styles = StyleSheet.create({
         bottom: 0,
         // Map takes full screen
     },
-    map:{flex:1} ,
+    map:{flex:1,overflow: 'hidden'},
     loadingContainer: {flex: 1, justifyContent: 'center', alignItems: 'center'},
 
     datetext: {
@@ -548,74 +564,54 @@ const styles = StyleSheet.create({
     swipeButtonDisabled: {
         backgroundColor: '#9CA3AF',
     },
-    swipeOutBg: {
-        backgroundColor: '#fff',
+   
+      
+      
+      
+    timecontainer: {
+        backgroundColor: '#cad2c5',
+        borderTopLeftRadius: 16,
+        borderTopRightRadius: 16,
         
-      },
-      
-      fingerprintLeft: {
-        position: 'absolute',
-        left: 20,
-        zIndex: 1,
-        justifyContent: 'center',
-        height: '100%',
-      },
-      
-      arrowRight: {
-        position: 'absolute',
-        right: 20,
-        zIndex: 1,
-        justifyContent: 'center',
-        height: '100%',
-      },
-      
-      swipeButtonIn: {
-        backgroundColor: '#fff',
-      },
-      
-      swipeButtonOut: {
-        backgroundColor: '#0C924B',
-      },
-      
-    timeRow: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        marginBottom: 15,
+        padding: 16,
+        width: '90%',
+        alignSelf: 'center',
+        marginTop: 20,
+        elevation: 4, // Android shadow
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.2,
+        shadowRadius: 4,
     },
-    timeBlock: {
+    topRow:{
+    
+        flexDirection: 'row',
+        justifyContent: 'space-between',   
+    },
+    timebox: { 
+       
+        borderColor: '#3E4F47',
         flex: 1,
         alignItems: 'center',
-        backgroundColor: '#fff',
-        padding: 15,
-        borderRadius: 10,
-        marginHorizontal: 5,
-        elevation: 2,
-        shadowColor: '#000',
-        shadowOffset: {width: 0, height: 1},
-        shadowOpacity: 0.1,
-        shadowRadius: 2,
+        paddingVertical: 10,
     },
-    timeLabel: {
+    totalBox: {
+        borderTopWidth: 1,
+        borderColor: '#3E4F47',
+        paddingVertical: 16,
+        alignItems: 'center',
+      },
+      row: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        marginBottom: 4,
+      },
+      label: {
+        fontWeight: '700',
+        color: '#1C1C1E',
         fontSize: 12,
-        color: '#666',
-        marginTop: 5,
-        fontWeight: '600',
-        textTransform: 'uppercase',
-    },
-    timeValue: {
-        fontSize: 16,
-        color: '#333',
-        fontWeight: 'bold',
-        marginTop: 5,
-    },
-    totalTime: {
-        fontSize: 14,
-        color: '#333',
-        textAlign: 'center',
-        fontWeight: '600',
-        textTransform: 'uppercase',
-        letterSpacing: 1,
-    },
+      },
+
 });
 
 
