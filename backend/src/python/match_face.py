@@ -17,7 +17,7 @@ image_path = sys.argv[1]
 employee_id = sys.argv[2]
 
 # Configuration
-MATCH_THRESHOLD = 0.4
+MATCH_THRESHOLD = 0.25
 MAX_FACE_RECORDS_PER_USER = 20  # Limit face records per user for performance
 
 def store_face_encoding_to_db(employee_id, face_encoding, cursor, conn):
@@ -75,7 +75,7 @@ try:
             anti_spoofing=True
         )
 
-        # Check if faces were detected and validate spoofing
+        # Check if faces were detected
         if not faces or len(faces) == 0:
             print(json.dumps({"matched": False, "error": "No face detected in the image"}))
             sys.exit(1)
@@ -85,16 +85,16 @@ try:
             print(json.dumps({
                 "matched": False,
                 "stored": False,
-                "error": "Spoofing detected - Please use a real face, not a photo or video"
+                "error": "Please use a real face, not a photo or video"
             }))
             sys.exit(1)
 
     except Exception as spoof_error:
-        # If anti-spoofing fails, fall back to regular face detection
+        # anti-spoofing fails
         print(json.dumps({
             "matched": False,
             "stored": False,
-            "error": f"Anti-spoofing detection failed: {str(spoof_error)}"
+            "error": f"Poor image quality or no face detected. Please try again."
         }))
         sys.exit(1)
 
