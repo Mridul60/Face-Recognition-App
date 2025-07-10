@@ -4,7 +4,7 @@ const db = require('../../config/dbConfig');
 const PunchService = ({CustomError, env}) => {
     return async function punchHandler(httpRequest) {
         const {employeeID, date, punch_in_time, punch_out_time} = httpRequest.body;
-
+        console.log(`${employeeID} - ${date} - ${punch_in_time}`);
         // Check for required fields
         if (!employeeID || !date || (!punch_in_time && !punch_out_time)) {
             return {
