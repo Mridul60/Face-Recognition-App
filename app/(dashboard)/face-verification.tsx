@@ -12,6 +12,8 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import config from "../../config"
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Logo from '@/assets/icons/GEEK-Id.svg'
+import axios from 'axios';
+import {handleMarkYourAttendance} from "@/app/viewmodels/dashboard-viewmodel";
 
 const BiometricScanScreen = () => {
     const [permission, requestPermission] = useCameraPermissions();
@@ -43,9 +45,8 @@ const BiometricScanScreen = () => {
             if (!userId) return;
 
             try {
-                const res = await fetch(config.API.IS_AVAILABLE(userId));
-                const data = await res.json();
-                setFaceExists(data?.body?.exists === true);
+                const res = await axios.get(config.API.IS_AVAILABLE(userId));
+                setFaceExists(res.data?.body?.exists === true);
             } catch (err) {
                 Alert.alert('Error', 'Could not check facial data.');
             }
@@ -83,20 +84,17 @@ const BiometricScanScreen = () => {
                 ? config.API.FACE_MATCH(userId, punchInOrPunchOut)
                 : config.API.FACE_REGISTER(userId);
 
-            const response = await fetch(endpoint, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'multipart/form-data',
-                },
-                body: formData,
-            });
-
-            const raw = await response.text();
             let data;
             try {
-                data = JSON.parse(raw);
+                const res = await axios.post(endpoint, formData, {
+                    headers: {
+                        'Content-Type': 'multipart/form-data',
+                    },
+                });
+                data = res.data;
             } catch (err) {
-                Alert.alert('Error', 'Server returned invalid response.');
+                Alert.alert('Error', 'Network error or invalid response.');
+                console.log(err);
                 return;
             }
 
@@ -128,6 +126,124 @@ const BiometricScanScreen = () => {
             setDotCount(0);
         }
     };
+
+    // const handleScan = async () => {
+    //     const totalStartTime = Date.now();
+    //     console.log('🕐 FRONTEND: Starting face scan process...');
+    //
+    //     if (isProcessing) return;
+    //     setIsProcessing(true);
+    //     setBaseStatusText(faceExists ? 'Verifying' : 'Registering');
+    //
+    //     try {
+    //         // Camera capture timing
+    //         const captureStartTime = Date.now();
+    //         console.log('📸 FRONTEND: Starting camera capture...');
+    //
+    //         if (!cameraRef.current) return;
+    //         const photo = await cameraRef.current.takePictureAsync({
+    //             quality: 0.5,
+    //             skipProcessing: true,
+    //         });
+    //
+    //         const captureEndTime = Date.now();
+    //         console.log(`📸 FRONTEND: Camera capture completed in ${captureEndTime - captureStartTime}ms`);
+    //
+    //         setCapturedPhotoUri(photo.uri);
+    //
+    //         // Data preparation timing
+    //         const dataStartTime = Date.now();
+    //         console.log('📋 FRONTEND: Preparing data...');
+    //
+    //         const userId = await AsyncStorage.getItem('userId');
+    //         if (!photo?.uri || !userId) {
+    //             Alert.alert('Error', 'Camera or user ID unavailable');
+    //             return;
+    //         }
+    //
+    //         const formData = new FormData();
+    //         formData.append('image', {
+    //             uri: photo.uri,
+    //             name: 'face.jpg',
+    //             type: 'image/jpg',
+    //         } as any);
+    //
+    //         const endpoint = faceExists
+    //             ? config.API.FACE_MATCH(userId, punchInOrPunchOut)
+    //             : config.API.FACE_REGISTER(userId);
+    //
+    //         const dataEndTime = Date.now();
+    //         console.log(`📋 FRONTEND: Data preparation completed in ${dataEndTime - dataStartTime}ms`);
+    //
+    //         // Network request timing
+    //         const networkStartTime = Date.now();
+    //         console.log('🌐 FRONTEND: Starting network request...');
+    //         console.log(`🌐 FRONTEND: Request URL: ${endpoint}`);
+    //
+    //         const response = await fetch(endpoint, {
+    //             method: 'POST',
+    //             headers: {
+    //                 'Content-Type': 'multipart/form-data',
+    //             },
+    //             body: formData,
+    //         });
+    //
+    //         const networkEndTime = Date.now();
+    //         console.log(`🌐 FRONTEND: Network request completed in ${networkEndTime - networkStartTime}ms`);
+    //
+    //         // Response processing timing
+    //         const responseStartTime = Date.now();
+    //         console.log('📥 FRONTEND: Processing response...');
+    //
+    //         const raw = await response.text();
+    //         let data;
+    //         try {
+    //             data = JSON.parse(raw);
+    //         } catch (err) {
+    //             Alert.alert('Error', 'Server returned invalid response.');
+    //             return;
+    //         }
+    //
+    //         const responseEndTime = Date.now();
+    //         console.log(`📥 FRONTEND: Response processing completed in ${responseEndTime - responseStartTime}ms`);
+    //
+    //         // Result handling
+    //         if (faceExists) {
+    //             if (data.body?.matched) {
+    //                 Alert.alert('Success', data.body?.message);
+    //                 await AsyncStorage.setItem('punchStatus', punchInOrPunchOut === 'punchIn' ? 'true' : 'false');
+    //                 router.replace('/dashboard');
+    //             } else {
+    //                 Alert.alert('Failed', data.body?.message);
+    //             }
+    //         } else {
+    //             if (data.body?.success) {
+    //                 Alert.alert('Success', 'Face registered successfully!');
+    //                 router.replace('/dashboard');
+    //             } else {
+    //                 Alert.alert('Failed', data.body?.message || 'Registration failed');
+    //             }
+    //         }
+    //
+    //         const totalEndTime = Date.now();
+    //         console.log(`🎉 FRONTEND: Total process completed in ${totalEndTime - totalStartTime}ms`);
+    //         console.log('='.repeat(50));
+    //
+    //     } catch (error) {
+    //         const errorTime = Date.now();
+    //         console.log(`❌ FRONTEND: Error occurred after ${errorTime - totalStartTime}ms`);
+    //         console.log(`❌ FRONTEND: Error details:`, error);
+    //
+    //         Alert.alert('Error', 'Face scan failed. Try again.');
+    //         setCapturedPhotoUri(null);
+    //         setBaseStatusText(null);
+    //         setDotCount(0);
+    //     } finally {
+    //         setIsProcessing(false);
+    //         setBaseStatusText(null);
+    //         setDotCount(0);
+    //     }
+    // };
 
     if (!permission || !permission.granted) {
         return (
