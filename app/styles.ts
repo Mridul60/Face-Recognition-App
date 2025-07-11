@@ -14,22 +14,22 @@ const SPACING = {
 
 const styles = StyleSheet.create({
 contentContainer: {
-    flexGrow: 1,
+  flexGrow: 1,
     justifyContent: 'center',
     paddingVertical: 40,
-    },
-    
-    formSection: {
+  },
+  
+  formSection: {
     marginTop: 20,
-    gap: 16, // clean spacing between inputs, error, and button
-    },
-    
-    errorText: {
+    gap: 8, // clean spacing between inputs, error, and button
+  },
+  
+  errorText: {
     color: 'red',
     textAlign: 'center',
     marginTop: 8,
     fontSize: 14,
-    },
+  },
       
   container: {
     flex: 1,
@@ -98,7 +98,7 @@ contentContainer: {
 
   forgotPassword: {
     alignSelf: 'flex-end',
-    marginBottom: SPACING.lg,
+    marginBottom: SPACING.xl,
   },
 
   forgotText: {

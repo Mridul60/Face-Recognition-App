@@ -13,7 +13,6 @@ import {
   View,
   ScrollView,
 } from 'react-native';
-import faceimage from '../../assets/images/face.png';
 import config from "../../config";
 import styles from "../styles";
 import { loginUser } from '../viewmodels/login-viewmodel';
