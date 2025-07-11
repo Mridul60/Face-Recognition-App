@@ -167,6 +167,20 @@ const styles = StyleSheet.create({
         fontSize: 18,
         fontWeight: '600',
     },
+    progressBarContainer: {
+        width: '80%',
+        height: 6,
+        borderRadius: 3,
+        backgroundColor: '#E0E0E0',
+        overflow: 'hidden',
+        marginTop: 16,
+      },
+      
+      progressBar: {
+        height: '100%',
+        backgroundColor: '#0C924B', // your primary theme color
+      },
+      
     statusText: {
         textAlign: 'center',
         marginTop: 12,
