@@ -1,110 +1,167 @@
 import { StyleSheet, Dimensions } from 'react-native';
+import { Colors } from '@/constants/Colors'; // assuming color themes are centralized
 
 const { width, height } = Dimensions.get('window');
 
+const SPACING = {
+  xs: 4,
+  sm: 8,
+  md: 16,
+  lg: 24,
+  xl: 32,
+  xxl: 40,
+};
+
 const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-        padding: 20,
-        justifyContent: 'space-around',
-    },
-    topSection: {
-        alignItems: 'center',
-        marginTop: 60,
-    },
-    image: {
-        width: 160,
-        height: 160,
-    },
-    appName: {
-        fontSize: 28,
-        fontWeight: 'bold',
-        marginBottom: 20,
-    },
-    appAbout: {
-        fontSize: 22,
-        color: 'gray',
-        marginTop: 20,
-    },
-    buttonRow: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        gap: 30,
-    },
-    button: {
-        flex: 1,
-        backgroundColor: 'green',
-        padding: 16,
-        borderRadius: 40,
-        alignItems: 'center',
-    },
-    buttonText: {
-        color: 'white',
-        fontWeight: 'bold',
-    },
-    separator: {
-        height: 16,
-    },
-    googleButton: {
-        backgroundColor: 'green',
-        padding: 16,
-        borderRadius: 40,
-        alignItems: 'center',
-    },
-    formSection: {
-        flex: 1,
-        justifyContent: 'flex-start',
-        paddingTop: 20,
-        alignSelf: 'center',
-    },
-    input: {
-        borderWidth: 1,
-        borderColor: 'gray',
-        borderRadius: 8,
-        paddingHorizontal: 16,
-        marginBottom: 20,
-        fontSize: Math.max(16, width * 0.04),
-    },
-    passwordContainer: {
-        flexDirection: 'row',
-        borderWidth: 1,
-        borderColor: 'gray',
-        borderRadius: 8,
-        paddingStart: 16,
-        marginBottom: 12,
-    },
-    passwordInput: {
-        flex: 1,
-        fontSize: Math.max(16, width * 0.04),
-    },
-    showHideButton: {
-        padding: 12,
-        fontSize: Math.max(14, width * 0.035),
-    },
-    forgotPassword: {
-        alignSelf: 'flex-end',
-        marginBottom: height * 0.04,
-    },
-    forgotText: {
-        color: '#007AFF',
-        fontSize: Math.max(14, width * 0.035),
-    },
-    cameraWrapper: {
-        width: '100%',
-        height: 300, // partial screen height
-        borderRadius: 16,
-        overflow: 'hidden',
-    },
-    camera: {
-        flex: 1,
-    },
-    registerButton: {
-        // flex: 1,
-        backgroundColor: 'green',
-        padding: 16,
-        borderRadius: 40,
-        alignItems: 'center',
-    },
+contentContainer: {
+  flexGrow: 1,
+    justifyContent: 'center',
+    paddingVertical: 40,
+  },
+  
+  formSection: {
+    marginTop: 20,
+    gap: 8, // clean spacing between inputs, error, and button
+  },
+  
+  errorText: {
+    color: 'red',
+    textAlign: 'center',
+    marginTop: 8,
+    fontSize: 14,
+  },
+      
+  container: {
+    flex: 1,
+    paddingHorizontal: SPACING.md,
+    paddingVertical: SPACING.lg,
+    justifyContent: 'space-around',
+    backgroundColor: Colors.light.background,
+  },
+
+  topSection: {
+    alignItems: 'center',
+    marginTop: SPACING.xl,
+  },
+
+  image: {
+    width: 160,
+    height: 160,
+    marginBottom: SPACING.md,
+  },
+
+  appName: {
+    paddingTop: 50,
+    fontSize: 28,
+    fontWeight: 'bold',
+    color: Colors.light.text,
+    marginBottom: SPACING.sm,
+  },
+
+  appAbout: {
+    fontSize: 22,
+    color: 'gray',
+    marginTop: SPACING.md,
+  },
+
+  input: {
+    borderWidth: 1,
+    borderColor: '#D1D1D6',
+    borderRadius: 8,
+    paddingHorizontal: SPACING.md,
+    paddingVertical: SPACING.sm,
+    marginBottom: SPACING.md,
+    fontSize: Math.max(16, width * 0.04),
+    backgroundColor: '#fff',
+  },
+
+  passwordContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: '#D1D1D6',
+    borderRadius: 8,
+    paddingStart: SPACING.md,
+    marginBottom: SPACING.md,
+    backgroundColor: '#fff',
+  },
+
+  passwordInput: {
+    flex: 1,
+    fontSize: Math.max(16, width * 0.04),
+  },
+
+  showHideButton: {
+    paddingHorizontal: SPACING.sm,
+    paddingVertical: SPACING.sm,
+  },
+
+  forgotPassword: {
+    alignSelf: 'flex-end',
+    marginBottom: SPACING.xl,
+  },
+
+  forgotText: {
+    color: '#007AFF',
+    fontSize: Math.max(14, width * 0.035),
+  },
+
+  button: {
+    backgroundColor: Colors.light.tint,
+    paddingVertical: SPACING.md,
+    paddingHorizontal: SPACING.lg,
+    borderRadius: 40,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+
+  buttonText: {
+    color: '#fff',
+    fontWeight: 'bold',
+    fontSize: 16,
+  },
+
+  buttonRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    gap: SPACING.lg,
+  },
+
+  separator: {
+    height: SPACING.md,
+  },
+
+  googleButton: {
+    backgroundColor: Colors.light.tint,
+    paddingVertical: SPACING.md,
+    borderRadius: 40,
+    alignItems: 'center',
+  },
+
+//   formSection: {
+//     flex: 1,
+//     justifyContent: 'flex-start',
+//     paddingTop: SPACING.lg,
+//     alignSelf: 'center',
+//   },
+
+  cameraWrapper: {
+    width: '100%',
+    height: height * 0.4,
+    borderRadius: 16,
+    overflow: 'hidden',
+  },
+
+  camera: {
+    flex: 1,
+  },
+
+  registerButton: {
+    backgroundColor: Colors.light.tint,
+    paddingVertical: SPACING.md,
+    borderRadius: 40,
+    alignItems: 'center',
+  },
 });
 
 export default styles;

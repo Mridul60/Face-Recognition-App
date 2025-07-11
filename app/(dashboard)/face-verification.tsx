@@ -12,10 +12,16 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import config from "../../config"
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Logo from '@/assets/icons/GEEK-Id.svg'
+import { Animated } from 'react-native';
+import { ActivityIndicator } from 'react-native';
+
+
 import axios from 'axios';
 import {handleMarkYourAttendance} from "@/app/viewmodels/dashboard-viewmodel";
 
 const BiometricScanScreen = () => {
+    const progressAnim = useRef(new Animated.Value(0)).current;
+
     const [permission, requestPermission] = useCameraPermissions();
     const cameraRef = useRef<CameraView | null>(null);
     const [faceExists, setFaceExists] = useState<boolean | null>(null);
@@ -27,6 +33,12 @@ const BiometricScanScreen = () => {
     // New states for animated status text
     const [baseStatusText, setBaseStatusText] = useState<string | null>(null);
     const [dotCount, setDotCount] = useState<number>(0);
+
+    const interpolatedWidth = progressAnim.interpolate({
+        inputRange: [0, 1],
+        outputRange: ['0%', '100%'],
+      });
+      
 
     // Animate dots while baseStatusText is shown
     useEffect(() => {
@@ -52,6 +64,43 @@ const BiometricScanScreen = () => {
             }
         })();
     }, []);
+    
+    useEffect(() => {
+        if (isProcessing) {
+          progressAnim.setValue(0);
+          Animated.loop(
+            Animated.timing(progressAnim, {
+              toValue: 1,
+              duration: 20000,
+              useNativeDriver: false, // width is not transform, so false
+            })
+          ).start();
+        } else {
+          progressAnim.stopAnimation();
+        }
+      }, [isProcessing]);
+      
+
+    
+    const mockScan = async () => {
+        if (isProcessing) return;
+    
+        setIsProcessing(true);
+        setBaseStatusText(faceExists ? 'Verifying' : 'Registering');
+    
+        // Keep the loading state active indefinitely
+        // until the developer manually stops it (e.g., via reload or timeout)
+        console.log("🔁 Simulating infinite loading...");
+    
+        // Optionally simulate captured photo
+        setCapturedPhotoUri('https://via.placeholder.com/400x400.png?text=Mock+Face');
+    
+        // 🔁 This Promise never resolves
+        await new Promise(() => {}); // infinite pending
+    
+        // This code will never run unless the Promise is canceled or screen is reloaded
+    };
+
 
     const handleScan = async () => {
         if (isProcessing) return;
@@ -302,7 +351,7 @@ const BiometricScanScreen = () => {
                     </Text>
                 </View>
 
-                {/* ⬇️ Dynamic verifying/registering bouncing dots */}
+                {/* ⬇️ Dynamic verifying/registering bouncing dots
                 {baseStatusText && (
                     <Animatable.Text
                         animation="fadeIn"
@@ -311,14 +360,28 @@ const BiometricScanScreen = () => {
                     >
                         {`${baseStatusText}${'.'.repeat(dotCount)}`}
                     </Animatable.Text>
-                )}
+                )} */}
 
+                    {isProcessing && (
+                    <View style={styles.progressBarContainer}>
+                        <Animated.View
+                        style={[styles.progressBar, { width: interpolatedWidth }]}
+                        />
+                        
+                    </View>
+                    )}
                 <TouchableOpacity
                     style={[styles.scanButton, isProcessing && { opacity: 0.6 }]}
                     onPress={handleScan}
                     disabled={isProcessing}
                 >
-                    <Text style={styles.scanButtonText}>{faceExists ? 'VERIFY' : 'REGISTER'}</Text>
+                    {isProcessing ? (
+
+                        <ActivityIndicator color="#FFFFFF" size="small" />
+                    
+                    ) : (
+                        <Text style={styles.scanButtonText}>{faceExists ? 'VERIFY' : 'REGISTER'}</Text>
+                    )}
                 </TouchableOpacity>
             </View>
         </View>
