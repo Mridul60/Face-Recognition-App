@@ -7,7 +7,7 @@ export default function Index() {
     return <Redirect href="/(dashboard)/face-verification" />;
   }else {
 
-    const isLoggedIn = false; // change to true to simulate a logged-in user
+    const isLoggedIn = true; // change to true to simulate a logged-in user
 
     return <Redirect href={isLoggedIn ? "/dashboard" : "/(auth)/login"} />;
   }

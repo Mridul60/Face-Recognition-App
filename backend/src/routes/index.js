@@ -13,7 +13,7 @@ const {
 } = require("../modules/facial");
 
 const {
-  punchHandler, getAttendanceHandler
+  punchHandler, getAttendanceHandler, getAttendanceHistoryHandler
 } = require("../modules/attendance");
 
 const {
@@ -57,6 +57,13 @@ router.post("/attendance/punch", async (req, res) => {
 router.get("/attendance/get", async (req, res) => {
   const httpRequest = adaptRequest(req);
   const result = await getAttendanceHandler(httpRequest);
+  return sendResponse(res, result);
+})
+
+//get attendance history
+router.get("/attendance/getAttendanceHistory", async (req, res) => {
+  const httpRequest = adaptRequest(req);
+  const result = await getAttendanceHistoryHandler(httpRequest);
   return sendResponse(res, result);
 })
 
