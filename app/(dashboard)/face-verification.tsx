@@ -3,7 +3,6 @@ import {
     View, Text, TouchableOpacity, StyleSheet, Alert, Image,
     Platform,
 } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
 import * as Animatable from 'react-native-animatable';
 import { CameraView, useCameraPermissions } from 'expo-camera';
 import { router, useLocalSearchParams } from 'expo-router';
@@ -17,7 +16,6 @@ import { ActivityIndicator } from 'react-native';
 
 
 import axios from 'axios';
-import {handleMarkYourAttendance} from "@/app/viewmodels/dashboard-viewmodel";
 
 const BiometricScanScreen = () => {
     const progressAnim = useRef(new Animated.Value(0)).current;
