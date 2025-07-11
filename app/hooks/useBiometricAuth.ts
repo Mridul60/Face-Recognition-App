@@ -5,31 +5,29 @@ import {Alert} from "react-native";
 
 export const useBiometricAuth = (
     isPunchedIn: boolean,
-    isWithinOffice: boolean,
-    handlePunchAction: Function
+    isWithinOffice: boolean
 ) => {
-    const handleBiometricAuth = async () => {
-        if (!isWithinOffice) {
-            Alert.alert('Location Error', 'You are outside the office boundary.');
-            return;
-        }
+    const handleBiometricAuth = async (): Promise<boolean> => {
+        try {
+            if (!isWithinOffice) {
+                Alert.alert('Location Error', 'You are outside the office boundary.');
+                return false;
+            }
+            const hasHardware = await LocalAuthentication.hasHardwareAsync();
+            const isEnrolled = await LocalAuthentication.isEnrolledAsync();
 
-        const hasHardware = await LocalAuthentication.hasHardwareAsync();
-        const isEnrolled = await LocalAuthentication.isEnrolledAsync();
+            if (!hasHardware || !isEnrolled) {
+                return false;
+            }
+            const result = await LocalAuthentication.authenticateAsync({
+                promptMessage: 'Authenticate to Punch Attendance',
+                fallbackLabel: 'Use PIN',
+            });
 
-        if (!hasHardware || !isEnrolled) {
-            return Alert.alert('Unavailable', 'Biometric auth not available.');
-        }
-
-        const result = await LocalAuthentication.authenticateAsync({
-            promptMessage: `Punch ${isPunchedIn ? 'Out' : 'In'}`,
-            fallbackLabel: 'Use PIN',
-        });
-
-        if (result.success) {
-            router.push('/face-verification');
-        } else {
-            Alert.alert('Authentication Failed');
+            return result.success;
+        } catch (error) {
+            console.error('Biometric auth error:', error);
+            return false;
         }
     };
 
