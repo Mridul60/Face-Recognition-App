@@ -36,7 +36,7 @@ export default function TabLayout() {
         <Logo width={142} height={79} />
 
         <TouchableOpacity
-          onPress={() => router.push('../(dashboard)/profile')}
+          onPress={() => router.push('/profile')}
           style={styles.avatarWrapper}
           hitSlop={10}
         >
