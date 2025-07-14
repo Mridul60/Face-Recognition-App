@@ -23,10 +23,11 @@ export function useDateTime() {
         const interval = setInterval(() => {
             setCurrentDate(getCurrentDate());
             setCurrentTime(getCurrentTime());
-        }, 60 * 1000); // every minute
+        }, 1000); // update every second
 
         return () => clearInterval(interval);
     }, []);
+
 
     return { currentDate, currentTime };
 }

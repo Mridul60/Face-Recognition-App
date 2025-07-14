@@ -141,7 +141,7 @@ const AttendanceHistoryScreen = () => {
                                 alignItems: 'center'
                             }]}>
                                 {/* Left column - Circle with month and date */}
-                                <View style={[styles.dateCircle, record.isToday && {backgroundColor: '#2196F3'}]}>
+                                <View style={[styles.dateCircle]}>
                                     <Text style={styles.dayNumberText}>
                                         {new Date(record.date).getDate()}
                                     </Text>
