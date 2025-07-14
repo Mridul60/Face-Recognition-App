@@ -1,9 +1,10 @@
 // const BASE_URL = 'http://192.168.29.249:9000'; // Change this only once
-const BASE_URL = 'http://192.168.96.22:9000'; // Change this only once
+const BASE_URL = 'http://10.104.9.5:9000'; // Change this only once
 
 export default {
     BASE_URL,
     API: {
+
         PUNCH_ATTENDANCE: `${BASE_URL}/attendance/punch`,
         AUTH_LOGIN: `${BASE_URL}/auth/login`,
         GET_ATTENDANCE: `${BASE_URL}/attendance/get`,

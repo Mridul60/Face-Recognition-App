@@ -208,6 +208,15 @@ const styles = StyleSheet.create({
         color: '#fff',
         fontWeight: 'bold',
     },
+    memeImage: {
+        position: 'absolute',
+        top: '25%',
+        left: '10%',
+        width: '80%',
+        height: '50%',
+        borderRadius: 10,
+        zIndex: 10,
+    }
 
 });
 

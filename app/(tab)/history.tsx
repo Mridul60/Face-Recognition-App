@@ -11,7 +11,6 @@ import AttendanceCard from "@/app/Components/history/AttendanceCard";
 const AttendanceHistoryScreen = () => {
     const today = new Date();
     const [selectedMonth, setSelectedMonth] = useState(today.getMonth());
-    const [selectedYear, setSelectedYear] = useState(0); // Use index for years array
     const [refreshing, setRefreshing] = useState(false);
     const [loading, setLoading] = useState(true);
 
@@ -32,17 +31,18 @@ const AttendanceHistoryScreen = () => {
         new Intl.DateTimeFormat('en', {month: 'short'}).format(new Date(2000, i, 1))
     );
 
-    // Create years array (simple strings)
     const currentYear = new Date().getFullYear();
     const years = Array.from({length: 3}, (_, i) => (currentYear - 2 + i).toString());
+    const defaultYearIndex = years.findIndex(year => parseInt(year) === currentYear);
+    const [selectedYear, setSelectedYear] = useState(defaultYearIndex);
 
-    // Set default year index to current year
-    useEffect(() => {
-        const currentYearIndex = years.findIndex(year => parseInt(year) === today.getFullYear());
-        if (currentYearIndex !== -1) {
-            setSelectedYear(currentYearIndex);
-        }
-    }, []);
+    // // Set default year index to current year
+    // useEffect(() => {
+    //     const currentYearIndex = years.findIndex(year => parseInt(year) === today.getFullYear());
+    //     if (currentYearIndex !== -1) {
+    //         setSelectedYear(currentYearIndex);
+    //     }
+    // }, []);
 
     const loadData = async () => {
         try {

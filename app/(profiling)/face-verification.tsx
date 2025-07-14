@@ -14,6 +14,7 @@ import Logo from '@/assets/icons/GEEK-Id.svg'
 import {Animated} from 'react-native';
 import {ActivityIndicator} from 'react-native';
 import Toast from 'react-native-toast-message';
+import { BackHandler } from 'react-native';
 
 const BiometricScanScreen = () => {
     const progressAnim = useRef(new Animated.Value(0)).current;
@@ -63,6 +64,14 @@ const BiometricScanScreen = () => {
     }, []);
 
     useEffect(() => {
+        const onBackPress = () => {
+            if (isProcessing) {
+                return true; // Disable back button when processing
+            }
+            return false; // Allow default back behavior
+        };
+        const subscription = BackHandler.addEventListener('hardwareBackPress', onBackPress);
+
         if (isProcessing) {
             progressAnim.setValue(0);
             Animated.loop(
@@ -75,6 +84,7 @@ const BiometricScanScreen = () => {
         } else {
             progressAnim.stopAnimation();
         }
+        return () => subscription.remove();
     }, [isProcessing]);
 
 
@@ -293,122 +303,3 @@ const BiometricScanScreen = () => {
 };
 
 export default BiometricScanScreen;
-
-
-// const handleScan = async () => {
-//     const totalStartTime = Date.now();
-//     console.log('🕐 FRONTEND: Starting face scan process...');
-//
-//     if (isProcessing) return;
-//     setIsProcessing(true);
-//     setBaseStatusText(faceExists ? 'Verifying' : 'Registering');
-//
-//     try {
-//         // Camera capture timing
-//         const captureStartTime = Date.now();
-//         console.log('📸 FRONTEND: Starting camera capture...');
-//
-//         if (!cameraRef.current) return;
-//         const photo = await cameraRef.current.takePictureAsync({
-//             quality: 0.5,
-//             skipProcessing: true,
-//         });
-//
-//         const captureEndTime = Date.now();
-//         console.log(`📸 FRONTEND: Camera capture completed in ${captureEndTime - captureStartTime}ms`);
-//
-//         setCapturedPhotoUri(photo.uri);
-//
-//         // Data preparation timing
-//         const dataStartTime = Date.now();
-//         console.log('📋 FRONTEND: Preparing data...');
-//
-//         const userId = await AsyncStorage.getItem('userId');
-//         if (!photo?.uri || !userId) {
-//             Alert.alert('Error', 'Camera or user ID unavailable');
-//             return;
-//         }
-//
-//         const formData = new FormData();
-//         formData.append('image', {
-//             uri: photo.uri,
-//             name: 'face.jpg',
-//             type: 'image/jpg',
-//         } as any);
-//
-//         const endpoint = faceExists
-//             ? config.API.FACE_MATCH(userId, punchInOrPunchOut)
-//             : config.API.FACE_REGISTER(userId);
-//
-//         const dataEndTime = Date.now();
-//         console.log(`📋 FRONTEND: Data preparation completed in ${dataEndTime - dataStartTime}ms`);
-//
-//         // Network request timing
-//         const networkStartTime = Date.now();
-//         console.log('🌐 FRONTEND: Starting network request...');
-//         console.log(`🌐 FRONTEND: Request URL: ${endpoint}`);
-//
-//         const response = await fetch(endpoint, {
-//             method: 'POST',
-//             headers: {
-//                 'Content-Type': 'multipart/form-data',
-//             },
-//             body: formData,
-//         });
-//
-//         const networkEndTime = Date.now();
-//         console.log(`🌐 FRONTEND: Network request completed in ${networkEndTime - networkStartTime}ms`);
-//
-//         // Response processing timing
-//         const responseStartTime = Date.now();
-//         console.log('📥 FRONTEND: Processing response...');
-//
-//         const raw = await response.text();
-//         let data;
-//         try {
-//             data = JSON.parse(raw);
-//         } catch (err) {
-//             Alert.alert('Error', 'Server returned invalid response.');
-//             return;
-//         }
-//
-//         const responseEndTime = Date.now();
-//         console.log(`📥 FRONTEND: Response processing completed in ${responseEndTime - responseStartTime}ms`);
-//
-//         // Result handling
-//         if (faceExists) {
-//             if (data.body?.matched) {
-//                 Alert.alert('Success', data.body?.message);
-//                 await AsyncStorage.setItem('punchStatus', punchInOrPunchOut === 'punchIn' ? 'true' : 'false');
-//                 router.replace('/dashboard');
-//             } else {
-//                 Alert.alert('Failed', data.body?.message);
-//             }
-//         } else {
-//             if (data.body?.success) {
-//                 Alert.alert('Success', 'Face registered successfully!');
-//                 router.replace('/dashboard');
-//             } else {
-//                 Alert.alert('Failed', data.body?.message || 'Registration failed');
-//             }
-//         }
-//
-//         const totalEndTime = Date.now();
-//         console.log(`🎉 FRONTEND: Total process completed in ${totalEndTime - totalStartTime}ms`);
-//         console.log('='.repeat(50));
-//
-//     } catch (error) {
-//         const errorTime = Date.now();
-//         console.log(`❌ FRONTEND: Error occurred after ${errorTime - totalStartTime}ms`);
-//         console.log(`❌ FRONTEND: Error details:`, error);
-//
-//         Alert.alert('Error', 'Face scan failed. Try again.');
-//         setCapturedPhotoUri(null);
-//         setBaseStatusText(null);
-//         setDotCount(0);
-//     } finally {
-//         setIsProcessing(false);
-//         setBaseStatusText(null);
-//         setDotCount(0);
-//     }
-// };
