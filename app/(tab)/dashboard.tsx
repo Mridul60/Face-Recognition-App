@@ -473,6 +473,7 @@ const Dashboard = () => {
                             titleStyles={{
                                 fontSize: 13,
                                 fontWeight: '600',
+                                
                             }}
                             titleColor={isPunchedIn ? '#0C924B' : '#fff'}
                             shouldResetAfterSuccess={true}
@@ -570,7 +571,7 @@ const styles = StyleSheet.create({
         justifyContent: 'center',
         backgroundColor: 'transparent',
     },
-    swipeButtonDisabled: {backgroundColor: '#9CA3AF'},
+    swipeButtonDisabled: {backgroundColor: 'transparent'},
     timecontainer: {
         backgroundColor: '#cad2c5',
         borderTopLeftRadius: 16,

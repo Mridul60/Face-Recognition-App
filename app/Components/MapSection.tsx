@@ -30,8 +30,8 @@ const MapSection: React.FC<MapSectionProps> = ({
                             mapRef.current.animateToRegion(
                                 {
                                     ...currentLocation,
-                                    latitudeDelta: 0.001,
-                                    longitudeDelta: 0.001,
+                                    latitudeDelta: 0.01,
+                                    longitudeDelta: 0.01,
                                 },
                                 800
                             );

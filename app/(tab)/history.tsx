@@ -67,7 +67,7 @@ const AttendanceHistoryScreen = () => {
                 return {
                     id: index + 1,
                     date: date.toISOString(),
-                    day: date.toLocaleDateString('en-US', {weekday: 'short'}),
+                    day: date.toLocaleDateString('en-US', {weekday: 'long'}),
                     inTime: formatTime(item.punch_in_time),
                     outTime: formatTime(item.punch_out_time),
                     isToday: date.toDateString() === today.toDateString(),

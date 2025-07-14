@@ -13,6 +13,9 @@ import {
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useColorScheme } from 'react-native';
 import { Colors } from '@/constants/Colors';
+import { IconSymbol } from '@/components/ui/IconSymbol';
+import { router } from 'expo-router';
+import { ProfileHeader } from './profile-header';
 
 const STORAGE_KEY = 'biometricEnabled';
 
@@ -91,11 +94,9 @@ export default function ProfileScreen() {
         <SafeAreaView style={[styles.container, { backgroundColor: theme.background }]}>
             <StatusBar barStyle={colorScheme === 'dark' ? 'light-content' : 'dark-content'} backgroundColor={theme.tint} />
 
-            {/* Header */}
-            <View style={[styles.header, { backgroundColor: theme.tint, paddingTop: Platform.OS === 'ios' ? 40 : StatusBar.currentHeight }]}>
-                <Text style={[styles.headerText, { color: theme.background }]}>Profile</Text>
-            </View>
-
+          
+            <ProfileHeader/>
+             
             <View style={styles.content}>
                 {/* Security Section */}
                 <View style={styles.section}>
@@ -156,17 +157,6 @@ export default function ProfileScreen() {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-    },
-    header: {
-        height: Platform.OS === 'ios' ? 76 : 76,
-        paddingHorizontal: 16,
-        justifyContent: 'center',
-
-    },
-    headerText: {
-        fontSize: 20,
-        fontWeight: '500',
-        alignContent:'center'
     },
     content: {
         flex: 1,
