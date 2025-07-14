@@ -1,16 +1,3 @@
-// function adaptRequest(req) {
-//     return Object.freeze({
-//         path: req.path,
-//         method: req.method,
-//         body: req.body,
-//         user:req.user,
-//         pathParams: req.params,
-//         queryParams: req.queryParams,
-//         files: req.files ? req.files : {},
-//         filename:req.filename
-//     })
-// }
-
 function adaptRequest(req) {
     return Object.freeze({
         path: req.path,
@@ -26,11 +13,8 @@ function adaptRequest(req) {
 }
 
 function sendResponse(res, results) {
-    const { statusCode = 200, ...rest } = results;
+    const {statusCode = 200, ...rest} = results;
     return res.status(statusCode).json(rest);
 }
 
-module.exports = {
-    adaptRequest,
-    sendResponse
-}
+module.exports = {adaptRequest, sendResponse}

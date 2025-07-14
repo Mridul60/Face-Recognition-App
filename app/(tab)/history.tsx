@@ -153,8 +153,8 @@ const AttendanceHistoryScreen = () => {
                                 {/* Right column - Day, In, Out */}
                                 <View style={{marginLeft: 16}}>
                                     <Text style={styles.dayText}>{record.day}</Text>
-                                    <Text style={styles.timeText}>In-time: {record.inTime || '—'}</Text>
-                                    <Text style={styles.timeText}>Out-time: {record.outTime || '—'}</Text>
+                                    <Text style={styles.timeText}>In-time: {record.inTime || '—:—'}</Text>
+                                    <Text style={styles.timeText}>Out-time: {record.outTime || '—:—'}</Text>
                                 </View>
                             </View>
                         ))}

@@ -56,7 +56,7 @@ const Dashboard = () => {
         longitudeDelta: 0.01,
     };
 
-    const officeRadius = 100;
+    const officeRadius = 10000;
     type LocationType = {
         latitude: number;
         longitude: number;

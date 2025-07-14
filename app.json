@@ -3,11 +3,6 @@
     "name": "FaceReconApp",
     "slug": "FaceReconApp",
     "version": "1.0.0",
-    "splash": {
-      "image": "./assets/images/gt-logo.gif",
-      "resizeMode": "contain",
-      "backgroundColor": "#ffffff"
-    },
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
     "scheme": "facereconapp",

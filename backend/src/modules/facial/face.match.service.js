@@ -23,9 +23,6 @@ const faceMatchService = () => {
         const imagePath = file.path;
         const pythonScriptPath = path.join(__dirname, '../../python/match_face.py');
 
-        console.log("Image Path:", imagePath);
-        console.log("Python Script Path:", pythonScriptPath);
-
         try {
             const pythonProcess = spawn('python', [pythonScriptPath, imagePath, userId]);
 
@@ -35,13 +32,11 @@ const faceMatchService = () => {
             for await (const chunk of pythonProcess.stdout) {
                 const text = chunk.toString();
                 output += text;
-                console.log("Python STDOUT:", text.trim());
             }
 
             for await (const chunk of pythonProcess.stderr) {
                 const errorText = chunk.toString();
                 errorOutput.push(errorText);
-                console.error("Python STDERR:", errorText.trim());
             }
 
             const exitCode = await new Promise(resolve => pythonProcess.on('close', resolve));
