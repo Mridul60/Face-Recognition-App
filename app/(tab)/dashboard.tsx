@@ -17,7 +17,7 @@ import SwipeButton from 'rn-swipe-button';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import * as Haptics from 'expo-haptics';
 
-import {useDateTime} from '../hooks/useDateTime';
+import {useDateTime, to12HourFormat} from '../hooks/useDateTime';
 import {useCurrentLocation} from '../hooks/useCurrentLocation';
 import {useBiometricAuth} from '../hooks/useBiometricAuth';
 import {calculateWorkHours} from '../utils/calculateWorkHours';
@@ -48,14 +48,12 @@ const Dashboard = () => {
     const [biometricEnabled, setBiometricEnabled] = useState(false);
 
     // Separate loading states
-    const [isMapLoading, setIsMapLoading] = useState(false); // No longer needed for cached location
     const [isLocationLoading, setIsLocationLoading] = useState(true);
     const [isAttendanceLoading, setIsAttendanceLoading] = useState(true);
 
     // New state for real-time location verification
     const [lastLocationUpdate, setLastLocationUpdate] = useState<number | null>(null);
     const [isLocationFresh, setIsLocationFresh] = useState(false);
-    const [locationAccuracy, setLocationAccuracy] = useState<number | null>(null);
 
     const {currentDate, currentTime} = useDateTime();
 
@@ -473,7 +471,6 @@ const Dashboard = () => {
                             titleStyles={{
                                 fontSize: 13,
                                 fontWeight: '600',
-                                
                             }}
                             titleColor={isPunchedIn ? '#0C924B' : '#fff'}
                             shouldResetAfterSuccess={true}
@@ -489,8 +486,8 @@ const Dashboard = () => {
                     </View>
 
                     <TimeSummary
-                        punchInTime={punchInTime}
-                        punchOutTime={punchOutTime}
+                        punchInTime={to12HourFormat(punchInTime)}
+                        punchOutTime={to12HourFormat(punchOutTime)}
                         totalWorkHours={totalWorkHours}
                         styles={styles}
                     />

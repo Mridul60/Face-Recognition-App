@@ -52,7 +52,7 @@ export const styles = StyleSheet.create({
     dropdownRow: {
         flexDirection: 'row',
         gap: 10,
-        marginBottom: 16,
+        // marginBottom: 16,
     },
     dropdown: {
         backgroundColor: '#fff',
