@@ -1,31 +1,25 @@
 import React, { useEffect, useState, useCallback } from 'react';
-import { 
-    View, 
-    Text, 
-    StyleSheet, 
-    TouchableOpacity, 
-    Switch, 
+import {
+    View,
+    Text,
+    StyleSheet,
+    TouchableOpacity,
+    Switch,
     Alert,
     Platform,
     SafeAreaView,
-    StatusBar
+    StatusBar,
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-
-// Define colors (you should import this from your colors file)
-const colors = {
-    tint: '#007AFF',
-    background: '#F8F9FA',
-    text: '#1C1C1E',
-    secondaryText: '#8E8E93',
-    separator: '#E5E5EA',
-    white: '#FFFFFF',
-    destructive: '#FF3B30'
-};
+import { useColorScheme } from 'react-native';
+import { Colors } from '@/constants/Colors';
 
 const STORAGE_KEY = 'biometricEnabled';
 
 export default function ProfileScreen() {
+    const colorScheme = useColorScheme() ?? 'light';
+    const theme = Colors.light;
+
     const [biometricEnabled, setBiometricEnabled] = useState(false);
     const [isLoading, setIsLoading] = useState(true);
 
@@ -46,12 +40,12 @@ export default function ProfileScreen() {
         }
     };
 
-    const toggleBiometric = useCallback(async (value: boolean | ((prevState: boolean) => boolean)) => {
+    const toggleBiometric = useCallback(async (value: boolean) => {
         try {
             setBiometricEnabled(value);
             await AsyncStorage.setItem(STORAGE_KEY, value.toString());
             Alert.alert(
-                'Biometric Authentication', 
+                'Biometric Authentication',
                 `Biometric authentication has been ${value ? 'enabled' : 'disabled'}.`,
                 [{ text: 'OK', style: 'default' }]
             );
@@ -62,7 +56,6 @@ export default function ProfileScreen() {
     }, []);
 
     const handleChangePassword = useCallback(() => {
-        // Navigate to change password screen
         Alert.alert('Change Password', 'Navigate to change password screen');
     }, []);
 
@@ -72,89 +65,86 @@ export default function ProfileScreen() {
             'Are you sure you want to log out?',
             [
                 { text: 'Cancel', style: 'cancel' },
-                { 
-                    text: 'Log Out', 
+                {
+                    text: 'Log Out',
                     style: 'destructive',
                     onPress: () => {
-                        // Perform logout logic here
                         console.log('Logging out...');
-                    }
-                }
+                    },
+                },
             ]
         );
     }, []);
 
     if (isLoading) {
         return (
-            <SafeAreaView style={styles.container}>
-                <StatusBar barStyle="light-content" backgroundColor={colors.tint} />
+            <SafeAreaView style={[styles.container, { backgroundColor: theme.background }]}>
+                <StatusBar barStyle={colorScheme === 'dark' ? 'light-content' : 'dark-content'} backgroundColor={theme.tint} />
                 <View style={styles.loadingContainer}>
-                    <Text style={styles.loadingText}>Loading...</Text>
+                    <Text style={[styles.loadingText, { color: theme.secondaryText }]}>Loading...</Text>
                 </View>
             </SafeAreaView>
         );
     }
 
     return (
-        <SafeAreaView style={styles.container}>
-            <StatusBar barStyle="light-content" backgroundColor={'#007AFF'} />
-            
+        <SafeAreaView style={[styles.container, { backgroundColor: theme.background }]}>
+            <StatusBar barStyle={colorScheme === 'dark' ? 'light-content' : 'dark-content'} backgroundColor={theme.tint} />
+
             {/* Header */}
-            <View style={styles.header}>
-                <Text style={styles.headerText}>Profile</Text>
+            <View style={[styles.header, { backgroundColor: theme.tint, paddingTop: Platform.OS === 'ios' ? 40 : StatusBar.currentHeight }]}>
+                <Text style={[styles.headerText, { color: theme.background }]}>Profile</Text>
             </View>
 
             <View style={styles.content}>
                 {/* Security Section */}
                 <View style={styles.section}>
-                    <Text style={styles.sectionTitle}>Security</Text>
-                    
-                    <View style={styles.settingRow}>
+                    <Text style={[styles.sectionTitle, { color: theme.secondaryText }]}>Security</Text>
+
+                    <View style={[styles.settingRow, { backgroundColor: theme.background, borderBottomColor: theme.icon }]}>
                         <View style={styles.settingInfo}>
-                            <Text style={styles.settingTitle}>Biometric Authentication</Text>
-                            <Text style={styles.settingDescription}>
+                            <Text style={[styles.settingTitle, { color: theme.text }]}>Biometric Authentication</Text>
+                            <Text style={[styles.settingDescription, { color: theme.secondaryText }]}>
                                 Use fingerprint or face recognition to unlock
                             </Text>
                         </View>
                         <Switch
                             value={biometricEnabled}
                             onValueChange={toggleBiometric}
-                            trackColor={{ false: colors.separator, true: '#007AFF' }}
-                            thumbColor={Platform.OS === 'ios' ? colors.white : colors.white}
-                            ios_backgroundColor={colors.separator}
+                            trackColor={{ false: theme.icon, true: theme.tint }}
+                            thumbColor={Platform.OS === 'ios' ? theme.background : theme.background}
+                            ios_backgroundColor={theme.icon}
                         />
                     </View>
-                    
-                    <TouchableOpacity 
-                        style={styles.settingRow} 
+
+                    <TouchableOpacity
+                        style={[styles.settingRow, { backgroundColor: theme.background, borderBottomColor: theme.icon }]}
                         onPress={handleChangePassword}
                         activeOpacity={0.7}
                     >
                         <View style={styles.settingInfo}>
-                            <Text style={styles.settingTitle}>Change Password</Text>
-                            <Text style={styles.settingDescription}>
+                            <Text style={[styles.settingTitle, { color: theme.text }]}>Change Password</Text>
+                            <Text style={[styles.settingDescription, { color: theme.secondaryText }]}>
                                 Update your account password
                             </Text>
                         </View>
                         <View style={styles.chevron}>
-                            <Text style={styles.chevronText}>›</Text>
+                            <Text style={[styles.chevronText, { color: theme.secondaryText }]}>›</Text>
                         </View>
                     </TouchableOpacity>
                 </View>
 
                 {/* Account Section */}
                 <View style={styles.section}>
-                    <Text style={styles.sectionTitle}>Account</Text>
-                    
-                    <TouchableOpacity 
-                        style={[styles.settingRow, styles.destructiveRow]} 
+                    <Text style={[styles.sectionTitle, { color: theme.secondaryText }]}>Account</Text>
+
+                    <TouchableOpacity
+                        style={[styles.settingRow, styles.destructiveRow, { backgroundColor: theme.background }]}
                         onPress={handleLogOut}
                         activeOpacity={0.7}
                     >
                         <View style={styles.settingInfo}>
-                            <Text style={[styles.settingTitle, styles.destructiveText]}>
-                                Log Out
-                            </Text>
+                            <Text style={[styles.settingTitle, { color: theme.destructive }]}>Log Out</Text>
                         </View>
                     </TouchableOpacity>
                 </View>
@@ -166,25 +156,21 @@ export default function ProfileScreen() {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: colors.background,
     },
     header: {
-        height: Platform.OS === 'ios' ? 76 : 60,
+        height: Platform.OS === 'ios' ? 76 : 76,
         paddingHorizontal: 16,
-        borderBottomWidth: 1,
-        backgroundColor: '#007A3D', 
         justifyContent: 'center',
-        paddingTop: Platform.OS === 'ios' ? 40 : StatusBar.currentHeight || 20,
+
     },
     headerText: {
         fontSize: 20,
         fontWeight: '500',
-        color: colors.white,
+        alignContent:'center'
     },
-
     content: {
         flex: 1,
-        paddingTop: Platform.OS === 'ios' ? 20 : 16,
+        paddingTop: 16,
     },
     loadingContainer: {
         flex: 1,
@@ -193,7 +179,6 @@ const styles = StyleSheet.create({
     },
     loadingText: {
         fontSize: 16,
-        color: colors.secondaryText,
     },
     section: {
         marginBottom: 32,
@@ -201,21 +186,18 @@ const styles = StyleSheet.create({
     sectionTitle: {
         fontSize: 13,
         fontWeight: '600',
-        color: colors.secondaryText,
         textTransform: 'uppercase',
         letterSpacing: 0.5,
         marginBottom: 8,
         marginHorizontal: 16,
     },
     settingRow: {
-        backgroundColor: colors.white,
         paddingVertical: 16,
         paddingHorizontal: 16,
         flexDirection: 'row',
         justifyContent: 'space-between',
         alignItems: 'center',
         borderBottomWidth: StyleSheet.hairlineWidth,
-        borderBottomColor: colors.separator,
         minHeight: 60,
     },
     settingInfo: {
@@ -225,12 +207,10 @@ const styles = StyleSheet.create({
     settingTitle: {
         fontSize: 17,
         fontWeight: '400',
-        color: colors.text,
         marginBottom: 2,
     },
     settingDescription: {
         fontSize: 13,
-        color: colors.secondaryText,
         lineHeight: 18,
     },
     chevron: {
@@ -241,13 +221,9 @@ const styles = StyleSheet.create({
     },
     chevronText: {
         fontSize: 18,
-        color: colors.secondaryText,
         fontWeight: '300',
     },
     destructiveRow: {
         borderBottomWidth: 0,
-    },
-    destructiveText: {
-        color: colors.destructive,
     },
 });
