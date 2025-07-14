@@ -4,14 +4,9 @@ const db = require('../../config/dbConfig');
 const PunchService = ({CustomError, env}) => {
     return async function punchHandler(httpRequest) {
         const {employeeID, date, punch_in_time, punch_out_time} = httpRequest.body;
-        console.log(`${employeeID} - ${date} - ${punch_in_time}`);
-        // Check for required fields
+
         if (!employeeID || !date || (!punch_in_time && !punch_out_time)) {
-            return {
-                statusCode: 400,
-                success: false,
-                message: 'Missing required fields',
-            };
+            return CustomError({message: 'Missing required fields. Please try again.', statusCode: 400}).handle();
         }
 
         try {
@@ -27,20 +22,10 @@ const PunchService = ({CustomError, env}) => {
                         'INSERT INTO attendance (employeeID, date, punch_in_time) VALUES (?, ?, ?)',
                         [employeeID, date, punch_in_time]
                     );
-                    console.log("Punch IN recorded");
                 } else {
-                    return {
-                        statusCode: 400,
-                        success: false,
-                        message: 'Punch-in already recorded for today.',
-                    };
+                    return CustomError({message: 'Punch-in already recorded for today.', statusCode: 400}).handle();
                 }
-
-                return {
-                    statusCode: 200,
-                    success: true,
-                    message: 'Punch-in recorded successfully.',
-                };
+                return {message: 'Punch-in recorded successfully.', statusCode: 200};
             } else {
                 // Case: Punching out
                 if (rows.length === 0) {
@@ -49,35 +34,20 @@ const PunchService = ({CustomError, env}) => {
                         'INSERT INTO attendance (employeeID, date, punch_out_time) VALUES (?, ?, ?)',
                         [employeeID, date, punch_out_time]
                     );
-                    console.log("Punch OUT recorded without punch-in");
-
-                    return {
-                        statusCode: 200,
-                        success: true,
-                        message: 'Punch-out recorded, but no punch-in was found for today.',
-                    };
+                    return  {message: "Punch OUT recorded without punch-in", statusCode: 200};
                 } else {
                     // Normal punch-out update
                     await db.query(
                         'UPDATE attendance SET punch_out_time = ? WHERE employeeID = ? AND date = ?',
                         [punch_out_time, employeeID, date]
                     );
-                    console.log("Punch OUT updated");
 
-                    return {
-                        statusCode: 200,
-                        success: true,
-                        message: 'Punch-out recorded successfully.',
-                    };
+                    return {statusCode: 200, message: 'Punch-out recorded successfully.'};
                 }
             }
         } catch (err) {
             console.error('Punch DB error:', err);
-            return {
-                statusCode: 500,
-                success: false,
-                message: 'Internal server error',
-            };
+            return CustomError({message: 'Server error. Please try again.', statusCode: 500}).handle();
         }
 
     };

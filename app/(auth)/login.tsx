@@ -39,7 +39,7 @@ export default function Login() {
 
   const handleLogin = async () => {
     if (!email || !password) {
-      setErrorMessage('Please fill all fields');
+      setErrorMessage('Please fill all the fields');
       return;
     }
     if (!isValidEmail(email)) {
@@ -84,7 +84,7 @@ export default function Login() {
       <ScrollView contentContainerStyle={styles.contentContainer} keyboardShouldPersistTaps="handled">
         <View style={styles.topSection}>
           <Logo width={320} height={110} />
-          
+
           <Text style={styles.appName}>Log in</Text>
         </View>
 

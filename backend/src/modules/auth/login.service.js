@@ -1,39 +1,29 @@
 const dotenv = require('dotenv').config({});
-const Employee = require('../../models/Employee'); // path based on your structure
+const Employee = require('../../models/Employee'); // Adjust path as needed
 
 const loginService = ({ CustomError, env }) => {
     return async function loginHandler(httpRequest) {
         const { email, password } = httpRequest.body;
 
+        // Validate input
         if (!email || !password) {
-            return {
-                status: false,
-                statusCode: 400,
-                message: 'Email and password are required.'
-            };
+            return CustomError({message: 'Email and password are required.', statusCode: 400}).handle();
         }
 
         try {
             const results = await Employee.findByEmail(email);
 
             if (!results || results.length === 0) {
-                return {
-                    status: false,
-                    statusCode: 404,
-                    message: 'User not found.'
-                };
+                return CustomError({message: 'Invalid email or password', statusCode: 404}).handle();
             }
 
             const user = results[0];
 
             if (user.password !== password) {
-                return {
-                    status: false,
-                    statusCode: 401,
-                    message: 'Incorrect password.'
-                };
+                return CustomError({message: 'Invalid email or password', statusCode: 401}).handle();
             }
 
+            // Successful login
             return {
                 status: true,
                 statusCode: 200,
@@ -46,11 +36,7 @@ const loginService = ({ CustomError, env }) => {
             };
         } catch (err) {
             console.error('Login error:', err);
-            return {
-                status: false,
-                statusCode: 500,
-                message: 'Server error. Please try again later.'
-            };
+            return CustomError({message: 'Server error. Please try again later.', statusCode: 500}).handle();
         }
     };
 };
