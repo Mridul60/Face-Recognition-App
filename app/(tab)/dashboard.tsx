@@ -72,12 +72,6 @@ const Dashboard = () => {
         setCurrentLocation
     );
 
-    //     const {getCurrentLocation} = useCurrentLocation(
-//         officeLocation,
-//         officeRadius,
-//         setIsWithinOffice,
-//         setCurrentLocation
-//     );
     const { handleBiometricAuth } = useBiometricAuth(isPunchedIn, isWithinOffice);
 
     const buttonWidth = width - 40;
@@ -182,7 +176,7 @@ const Dashboard = () => {
                                         width: 46,
                                         height: 46,
                                         borderRadius: 30,
-                                        backgroundColor: isPunchedIn ? '#1c1c1c' : '#0C924B',
+                                        backgroundColor: isPunchedIn ? '#ffff' : '#0C924B',
                                         justifyContent: 'center',
                                         alignItems: 'center',
                                         borderWidth: 2,
@@ -251,7 +245,6 @@ const Dashboard = () => {
 };
 
 const styles = StyleSheet.create({
-    // keep your full original styles here unchanged
     container: { flex: 1, backgroundColor: '#fff' },
     mapWrapper: { flex: 1, marginBottom: 200, overflow: 'hidden', borderRadius: 20 },
     map: { flex: 1 },
@@ -299,9 +292,9 @@ const styles = StyleSheet.create({
         justifyContent: 'center',
         backgroundColor: 'transparent',
     },
-    swipeButtonDisabled: { backgroundColor: '#9CA3AF' },
+    swipeButtonDisabled: { backgroundColor: '#fff' },
     timecontainer: {
-        backgroundColor: '#cad2c5',
+        backgroundColor: '#dbe8d4ff',
         borderTopLeftRadius: 16,
         borderTopRightRadius: 16,
         padding: 16,

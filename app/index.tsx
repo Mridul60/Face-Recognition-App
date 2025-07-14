@@ -3,13 +3,13 @@ import { Redirect } from "expo-router";
 import Toast from 'react-native-toast-message';
 
 export default function Index() {
-  const isBeingDesigned = false;
+  const isBeingDesigned = true;
   const isLoggedIn = false;
 
   if (isBeingDesigned) {
     return (
         <>
-          <Redirect href="/(dashboard)/face-verification" />
+          <Redirect href="/(tab)/dashboard"/>
           <Toast />
         </>
     );
