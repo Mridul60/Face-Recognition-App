@@ -18,7 +18,7 @@ export const Colors = {
   },
   dark: {
     text: '#F2F2F7',                // light text on dark background
-    background: '#1C1C1E',          // very dark gray background
+    background: '#1a201cff',          // very dark gray background
     tint: tintColorDark,            // primary green (highlight)
     icon: '#9BA1A6',                // subtle gray for icons in dark mode
     tabIconDefault: '#9BA1A6',
