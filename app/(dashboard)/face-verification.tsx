@@ -146,23 +146,29 @@ const BiometricScanScreen = () => {
                 data = JSON.parse(raw);
             } catch (err) {
                 Alert.alert('Error', 'Server returned invalid response.');
+                // Reset states when JSON parsing fails
+                resetScanState();
                 return;
             }
 
             if (faceExists) {
                 if (data.body?.matched) {
-                    // Alert.alert('Success', data.body?.message);
                     Toast.show({
                         type: 'success',
                         text1: 'Success',
                         text2: data.body?.message || 'Face matched!',
                         position: 'bottom',
+                        visibilityTime: 4000,
+                        autoHide: true,
+                        onPress: () => Toast.hide(),
                     });
 
                     await AsyncStorage.setItem('punchStatus', punchInOrPunchOut === 'punchIn' ? 'true' : 'false');
                     router.replace('/dashboard');
                 } else {
                     Alert.alert('Failed', data.body?.message);
+                    // Reset states when face doesn't match
+                    resetScanState();
                 }
             } else {
                 if (data.body?.success) {
@@ -170,19 +176,29 @@ const BiometricScanScreen = () => {
                     router.replace('/dashboard');
                 } else {
                     Alert.alert('Failed', data.body?.message || 'Registration failed');
+                    // Reset states when registration fails
+                    resetScanState();
                 }
             }
 
         } catch (error) {
             Alert.alert('Failed', 'Face scan failed. Try again.');
-            setCapturedPhotoUri(null); // Clear stuck photo
-            setBaseStatusText(null);   // Clear status
-            setDotCount(0);
+            resetScanState();
         } finally {
             setIsProcessing(false);
             setBaseStatusText(null);
             setDotCount(0);
         }
+    };
+
+// Helper function to reset all scan-related states
+    const resetScanState = () => {
+        setCapturedPhotoUri(null);
+        setBaseStatusText(null);
+        setDotCount(0);
+        setIsProcessing(false);
+        progressAnim.stopAnimation();
+        progressAnim.setValue(0);
     };
     if (!permission || !permission.granted) {
         return (
