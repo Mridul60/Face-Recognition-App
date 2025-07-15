@@ -8,6 +8,8 @@ import numpy as np
 from deepface import DeepFace
 import pickle
 from datetime import datetime
+import cv2
+import tempfile
 
 def log_with_time(message):
     timestamp = datetime.now().strftime('%H:%M:%S.%f')[:-3]
@@ -26,6 +28,35 @@ employee_id = sys.argv[2]
 # Configuration
 MATCH_THRESHOLD = 0.25
 MAX_FACE_RECORDS_PER_USER = 20  # Limit face records per user for performance
+
+# Optimization 1: Image preprocessing function
+def preprocess_image(image_path, target_size=(640, 640)):
+    try:
+        img = cv2.imread(image_path)
+        if img is None:
+            return image_path  # Return original if can't load
+
+        # Resize if image is too large
+        height, width = img.shape[:2]
+        if height > target_size[0] or width > target_size[1]:
+            log_with_time(f"Resizing image from {width}x{height} to optimize processing")
+            # Calculate scaling factor to maintain aspect ratio
+            scale = min(target_size[0]/height, target_size[1]/width)
+            new_width = int(width * scale)
+            new_height = int(height * scale)
+            img = cv2.resize(img, (new_width, new_height), interpolation=cv2.INTER_AREA)
+
+            # Save resized image to temporary file
+            temp_fd, temp_path = tempfile.mkstemp(suffix='.jpg')
+            os.close(temp_fd)  # Close file descriptor
+            cv2.imwrite(temp_path, img)
+            log_with_time(f"Image resized and saved to temporary file")
+            return temp_path
+
+        return image_path
+    except Exception as e:
+        log_with_time(f"Error preprocessing image: {str(e)}")
+        return image_path
 
 def store_face_encoding_to_db(employee_id, face_encoding, cursor, conn):
     try:
@@ -73,10 +104,16 @@ cursor = conn.cursor()
 log_with_time("end database connection")
 
 try:
+    log_with_time("start image preprocessing")
+    processed_image_path = preprocess_image(image_path)
+    if processed_image_path != image_path:
+        temp_image_path = processed_image_path  # Track for cleanup
+    log_with_time("end image preprocessing")
+
     try:
         log_with_time("start deepface.extract_faces(retinaface, antispoofing=true)")
         faces = DeepFace.extract_faces(
-            img_path=image_path,
+            img_path=processed_image_path,
             detector_backend='retinaface',
             enforce_detection=True,
             align=True,
@@ -118,7 +155,7 @@ try:
     # Generate encoding for the captured image (after spoofing check passes)
     log_with_time("Start face encoding generation using Facenet512, retinaface")
     face_encodings = DeepFace.represent(
-        img_path=image_path,
+        img_path=processed_image_path,
         model_name='Facenet512',
         detector_backend='retinaface',
         enforce_detection=True
