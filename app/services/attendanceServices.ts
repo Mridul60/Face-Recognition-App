@@ -30,13 +30,13 @@ export const getPunchInAndOutTime = async (
             const data = json.data;
 
             if (data.punch_in_time) {
-                console.log("[getPunchInAndOutTime] Setting punch-in time:", data.punch_in_time);
+               // console.log("[getPunchInAndOutTime] Setting punch-in time:", data.punch_in_time);
                 setPunchInTime(data.punch_in_time);
                 await AsyncStorage.setItem('punchInTime', data.punch_in_time);
             }
 
             if (data.punch_out_time) {
-                console.log("[getPunchInAndOutTime] Setting punch-out time:", data.punch_out_time);
+              //  console.log("[getPunchInAndOutTime] Setting punch-out time:", data.punch_out_time);
                 setPunchOutTime(data.punch_out_time);
                 await AsyncStorage.setItem('punchOutTime', data.punch_out_time);
             }

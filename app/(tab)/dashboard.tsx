@@ -96,14 +96,11 @@ const Dashboard = () => {
                 if (cached) {
                     const cachedLocation = JSON.parse(cached);
                     setDisplayLocation(cachedLocation);
-                    console.log('[SUCCESS] Cached location loaded for display');
                 } else {
                     // Default to office location if no cache
                     setDisplayLocation(officeLocation);
-                    console.log('[INFO] No cached location, using office location');
                 }
             } catch (e) {
-                console.error('[ERROR] Failed to load cached location:', e);
                 setDisplayLocation(officeLocation);
             }
         };
@@ -114,8 +111,6 @@ const Dashboard = () => {
     useEffect(() => {
         const startLocationMonitoring = async () => {
             try {
-                console.log('[INFO] Starting location monitoring...');
-
                 // Initial location fetch
                 await getCurrentLocation();
                 setLastLocationUpdate(Date.now());
@@ -149,19 +144,15 @@ const Dashboard = () => {
                                     // If user moved > 100m, check more frequently
                                     if (distance > 100) {
                                         currentInterval = minInterval;
-                                        console.log('[INFO] Movement detected, increasing frequency');
                                     } else {
                                         // If stationary, reduce frequency
                                         currentInterval = Math.min(currentInterval * 1.5, maxInterval);
-                                        console.log('[INFO] Stationary, reducing frequency');
                                     }
                                 }
 
-                                console.log(`[INFO] Next location check in ${currentInterval / 1000}s`);
                                 scheduleNextUpdate();
 
                             } catch (error) {
-                                console.error('[ERROR] Location monitoring failed:', error);
                                 setIsLocationFresh(false);
                                 // Retry with longer interval on error
                                 currentInterval = Math.min(currentInterval * 2, maxInterval);
@@ -234,7 +225,6 @@ const Dashboard = () => {
         useCallback(() => {
             const loadBiometricPreference = async () => {
                 const value = await AsyncStorage.getItem('biometricEnabled');
-                console.log('[INFO] Biometric preference loaded:', value);
                 setBiometricEnabled(value === 'true');
             };
             loadBiometricPreference();
@@ -245,12 +235,9 @@ const Dashboard = () => {
     useEffect(() => {
         const loadAttendanceData = async () => {
             try {
-                console.log('[INFO] Fetching attendance data...');
                 setIsAttendanceLoading(true);
                 await getPunchInAndOutTime(setPunchInTime, setPunchOutTime, setIsPunchedIn, setBothIsPunched);
-                console.log('[SUCCESS] Attendance data loaded');
             } catch (e) {
-                console.error('[ERROR] Attendance loading failed:', e);
             } finally {
                 setIsAttendanceLoading(false);
             }
@@ -262,7 +249,6 @@ const Dashboard = () => {
     // Work hours calculation
     useEffect(() => {
         if (isPunchedIn && punchInTime !== '--:--' && punchOutTime === '--:--') {
-            console.log('[TIMER] Starting real-time timer...');
             const inDate = new Date(`2000-01-01T${punchInTime}`);
             if (timerRef.current) clearInterval(timerRef.current);
             timerRef.current = setInterval(() => {
@@ -285,7 +271,6 @@ const Dashboard = () => {
             }
 
             if (punchInTime !== '--:--' && punchOutTime !== '--:--') {
-                console.log('[TIMER] Calculating total work hours statically');
                 const result = calculateWorkHours(punchInTime, punchOutTime);
                 setTotalWorkHours(result);
             }
@@ -293,7 +278,6 @@ const Dashboard = () => {
 
         return () => {
             if (timerRef.current) {
-                console.log('[TIMER] Cleaning up interval');
                 clearInterval(timerRef.current);
             }
         };
@@ -302,7 +286,6 @@ const Dashboard = () => {
     // Enhanced punch verification with on-demand location check
     const handlePunchAction = async () => {
         try {
-            console.log('[ACTION] Punch action initiated');
             setIsLoading(true);
 
             // Strategy: Check location freshness first, then decide
@@ -310,7 +293,6 @@ const Dashboard = () => {
 
             // If location is older than 5 minutes, get fresh location
             if (timeSinceLastUpdate > 300000) {
-                console.log('[SECURITY] Location is stale, fetching fresh location...');
                 await getCurrentLocation();
                 setLastLocationUpdate(Date.now());
                 setIsLocationFresh(true);
@@ -338,17 +320,14 @@ const Dashboard = () => {
 
             // Biometric authentication if enabled
             if (biometricEnabled) {
-                console.log('[AUTH] Biometric authentication started...');
                 const authSuccess = await handleBiometricAuth();
                 if (!authSuccess) {
-                    console.warn('[AUTH] Biometric authentication failed');
                     Alert.alert('Authentication Failed', 'Please try again.');
                     return;
                 }
             }
 
             // Mark attendance
-            console.log('[ACTION] Marking attendance...');
             await handleMarkYourAttendance(isPunchedIn);
 
             // Success feedback

@@ -60,9 +60,12 @@ router.post("/face/register/:userId", upload.single('image'), async (req, res) =
 
 // Face match
 router.post("/face/match/:userId", upload.single('image'), async (req, res) => {
+    console.log("routes/entered", new Date().toLocaleTimeString());
     const httpRequest = adaptRequest(req);
     const result = await faceMatchHandler(httpRequest);
+    console.log("routes/exit", new Date().toLocaleTimeString());
     return sendResponse(res, result);
+
 });
 
 // Check if face exists

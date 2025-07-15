@@ -4,7 +4,7 @@ const db = require('../../config/dbConfig');
 const GetAttendanceService = ({ CustomError, env }) => {
     return async function getAttendanceHandler(httpRequest) {
         try {
-            console.log('Received HTTP request with queryParams:', httpRequest.queryParams);
+            //console.log('Received HTTP request with queryParams:', httpRequest.queryParams);
 
             const { employeeID, date } = httpRequest.queryParams;
 
@@ -27,7 +27,7 @@ const GetAttendanceService = ({ CustomError, env }) => {
                 });
             }
 
-            console.log(`Fetching attendance for employeeID: ${employeeID} on date: ${date}`);
+           // console.log(`Fetching attendance for employeeID: ${employeeID} on date: ${date}`);
 
             // Query that converts stored UTC time to IST before comparing
             const query = `
@@ -41,7 +41,7 @@ const GetAttendanceService = ({ CustomError, env }) => {
             `;
             const result = await db.query(query, [employeeID, date]);
 
-            console.log('Query result:', result);
+           // console.log('Query result:', result);
 
             // If no attendance record found for the date
             if (!result || result.length === 0) {
@@ -60,7 +60,7 @@ const GetAttendanceService = ({ CustomError, env }) => {
 
             // Return the attendance data
             const attendanceData = result[0];
-            console.log('Attendance record found:', attendanceData);
+           // console.log('Attendance record found:', attendanceData);
 
             return {
                 statusCode: 200,
