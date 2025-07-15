@@ -30,6 +30,14 @@ const BiometricScanScreen = () => {
     // New states for animated status text
     const [baseStatusText, setBaseStatusText] = useState<string | null>(null);
     const [dotCount, setDotCount] = useState<number>(0);
+    const [statusMessage, setStatusMessage] = useState<string | null>(null);
+
+    const playStatusSequence = (finalStepText: string) => {
+        setStatusMessage("Processing image...");
+        setTimeout(() => setStatusMessage("Uploading image..."), 2000);
+        setTimeout(() => setStatusMessage("Extracting faces..."), 3000);
+        setTimeout(() => setStatusMessage(finalStepText), 6000);
+    };
 
     const interpolatedWidth = progressAnim.interpolate({
         inputRange: [0, 1],
@@ -113,6 +121,7 @@ const BiometricScanScreen = () => {
         if (isProcessing) return;
         setIsProcessing(true);
         setBaseStatusText(faceExists ? 'Verifying' : 'Registering');
+        playStatusSequence(faceExists ? "Matching face..." : "Registering face...");
 
         try {
             if (!cameraRef.current) return;
@@ -140,6 +149,7 @@ const BiometricScanScreen = () => {
                 ? config.API.FACE_MATCH(userId, punchInOrPunchOut)
                 : config.API.FACE_REGISTER(userId);
 
+            console.log("face-verification/before response", new Date().toLocaleTimeString());
             const response = await fetch(endpoint, {
                 method: 'POST',
                 headers: {
@@ -147,9 +157,9 @@ const BiometricScanScreen = () => {
                 },
                 body: formData,
             });
+            console.log("face-verification/after response", new Date().toLocaleTimeString());
 
             const raw = await response.text();
-            console.log("raw: ", raw);
 
             let data;
             try {
@@ -198,6 +208,8 @@ const BiometricScanScreen = () => {
             setIsProcessing(false);
             setBaseStatusText(null);
             setDotCount(0);
+            setStatusMessage(null);
+
         }
     };
 
@@ -205,6 +217,7 @@ const BiometricScanScreen = () => {
     const resetScanState = () => {
         setCapturedPhotoUri(null);
         setBaseStatusText(null);
+        setStatusMessage(null);
         setDotCount(0);
         setIsProcessing(false);
         progressAnim.stopAnimation();
@@ -277,6 +290,15 @@ const BiometricScanScreen = () => {
                         {`${baseStatusText}${'.'.repeat(dotCount)}`}
                     </Animatable.Text>
                 )} */}
+                {statusMessage && (
+                    <Animatable.Text
+                        animation="fadeIn"
+                        duration={400}
+                        style={styles.statusText}
+                    >
+                        {statusMessage}
+                    </Animatable.Text>
+                )}
 
                 {isProcessing && (
                     <View style={styles.progressBarContainer}>

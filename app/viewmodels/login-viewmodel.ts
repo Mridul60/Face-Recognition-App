@@ -19,7 +19,7 @@ export const loginUser = async (
 
         const responseText = await response.text();
         const data = JSON.parse(responseText);
-        console.log('data:', data);
+       // console.log('data:', data);
 
         const statusCode = data?.statusCode || response.status;
         const message = data?.data?.message;
