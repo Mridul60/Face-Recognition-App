@@ -9,7 +9,10 @@
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "infoPlist": {
+        "NSCameraUsageDescription": "This app uses the camera for facial recognition."
+      }
     },
     "android": {
       "adaptiveIcon": {
@@ -18,13 +21,9 @@
       },
       "edgeToEdgeEnabled": true,
       "package": "com.mridul_roy.FaceReconApp",
-      "permissions" : ["CAMERA"]
-    },
-    "ios": {
-      "supportsTablet": true,
-      "infoPlist": {
-       "NSCameraUsageDescription": "This app uses the camera for facial recognition."
-      }
+      "permissions": [
+        "CAMERA"
+      ]
     },
     "web": {
       "bundler": "metro",
@@ -52,6 +51,5 @@
     "experiments": {
       "typedRoutes": true
     }
-   
   }
 }
