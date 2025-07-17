@@ -1,7 +1,5 @@
-import bcrypt from 'bcrypt'
-const dotenv = require('dotenv').config({});
-const Employee = require('../../models/Employee'); 
-
+const bcrypt = require('bcrypt');
+const Employee = require('../../models/Employee');
 
 const loginService = ({ CustomError, env }) => {
     return async function loginHandler(httpRequest) {
