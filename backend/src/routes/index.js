@@ -7,10 +7,20 @@ const {punchHandler, getAttendanceHandler, getAttendanceHistoryHandler} = requir
 const {adaptRequest, sendResponse} = require('../util/http');
 const router = express.Router();
 
+// Change password 
+const { registerUser, changePassword } = require('../controllers/authController');
+
+// Change-password route
+router.post('/auth/change-password',changePassword);
+
+// Register route
+router.post('/auth/register',registerUser)
+
 
 // Define proper Multer diskStorage
 const storage = multer.diskStorage({
     destination: function (req, file, cb) {
+        // eslint-disable-next-line no-undef
         cb(null, path.join(__dirname, '../../public/uploads'));
     },
     filename: function (req, file, cb) {

@@ -162,6 +162,51 @@ contentContainer: {
     borderRadius: 40,
     alignItems: 'center',
   },
+  modalOverlay: {
+    position: 'absolute',
+    top: 0, left: 0, right: 0, bottom: 0,
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 20,
+    zIndex: 999,
+  },
+  modalContent: {
+      width: '100%',
+      backgroundColor: '#fff',
+      borderRadius: 12,
+      padding: 20,
+      elevation: 10,
+  },
+  modalTitle: {
+      fontSize: 18,
+      fontWeight: '600',
+      marginBottom: 16,
+      textAlign: 'center',
+  },
+  modalInput: {
+      borderWidth: 1,
+      borderColor: '#ccc',
+      borderRadius: 8,
+      padding: 10,
+      marginBottom: 12,
+  },
+  modalButtons: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+  },
+  modalButton: {
+      flex: 1,
+      padding: 10,
+      marginHorizontal: 5,
+      borderRadius: 8,
+      alignItems: 'center',
+  },
+  modalButtonText: {
+      color: '#fff',
+      fontWeight: '600',
+  },
+
 });
 
 export default styles;

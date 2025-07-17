@@ -32,6 +32,6 @@
     "expo-env.d.ts",
     "app/**/*",
     "assets/**/*",
-    "declarations.d.ts",
+    "declarations.d.ts", "backend/src/modules/auth/authController.js", "backend/src/util/makeHashPassword.js",
   ]
 }
