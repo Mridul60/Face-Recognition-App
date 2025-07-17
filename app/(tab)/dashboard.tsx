@@ -328,7 +328,7 @@ const Dashboard = () => {
             }
 
             // Mark attendance
-            await handleMarkYourAttendance(isPunchedIn);
+            handleMarkYourAttendance(isPunchedIn);
 
             // Success feedback
             Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);

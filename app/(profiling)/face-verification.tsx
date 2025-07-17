@@ -35,8 +35,8 @@ const BiometricScanScreen = () => {
     const playStatusSequence = (finalStepText: string) => {
         setStatusMessage("Processing image...");
         setTimeout(() => setStatusMessage("Uploading image..."), 2000);
-        setTimeout(() => setStatusMessage("Extracting faces..."), 3000);
-        setTimeout(() => setStatusMessage(finalStepText), 6000);
+        setTimeout(() => setStatusMessage("Extracting faces..."), 2000);
+        setTimeout(() => setStatusMessage(finalStepText), 4000);
     };
 
     const interpolatedWidth = progressAnim.interpolate({
@@ -121,7 +121,7 @@ const BiometricScanScreen = () => {
         if (isProcessing) return;
         setIsProcessing(true);
         setBaseStatusText(faceExists ? 'Verifying' : 'Registering');
-        playStatusSequence(faceExists ? "Matching face..." : "Registering face...");
+        playStatusSequence(faceExists ? "Verifying face..." : "Registering face...");
 
         try {
             if (!cameraRef.current) return;
@@ -300,14 +300,14 @@ const BiometricScanScreen = () => {
                     </Animatable.Text>
                 )}
 
-                {isProcessing && (
-                    <View style={styles.progressBarContainer}>
-                        <Animated.View
-                            style={[styles.progressBar, {width: interpolatedWidth}]}
-                        />
+                {/*{isProcessing && (*/}
+                {/*    <View style={styles.progressBarContainer}>*/}
+                {/*        <Animated.View*/}
+                {/*            style={[styles.progressBar, {width: interpolatedWidth}]}*/}
+                {/*        />*/}
 
-                    </View>
-                )}
+                {/*    </View>*/}
+                {/*)}*/}
                 <TouchableOpacity
                     style={[styles.scanButton, isProcessing && {opacity: 0.6}]}
                     onPress={handleScan}
