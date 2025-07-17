@@ -9,6 +9,7 @@ import {
     Platform,
     SafeAreaView,
     StatusBar,
+    TextInput,
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useColorScheme } from 'react-native';
@@ -16,6 +17,9 @@ import { Colors } from '@/constants/Colors';
 import { IconSymbol } from '@/components/ui/IconSymbol';
 import { router } from 'expo-router';
 import { ProfileHeader } from './profile-header';
+import style from '@/app/styles';
+import config from "../../config";
+
 
 const STORAGE_KEY = 'biometricEnabled';
 
@@ -25,6 +29,20 @@ export default function ProfileScreen() {
 
     const [biometricEnabled, setBiometricEnabled] = useState(false);
     const [isLoading, setIsLoading] = useState(true);
+    const [currentPassword, setCurrentPassword] = useState('');
+    const [newPassword, setNewPassword] = useState('');
+    const [showPasswordModal, setShowPasswordModal] = useState(false);
+    const [userEmail, setUserEmail] = useState('');
+
+    useEffect(() => {
+        const loadUserEmail = async () => {
+            const email = await AsyncStorage.getItem('userEmail');
+            if (email) setUserEmail(email);
+        };
+        loadUserEmail();
+    }, []);
+
+
 
     useEffect(() => {
         loadBiometricPreference();
@@ -43,23 +61,21 @@ export default function ProfileScreen() {
         }
     };
 
-/**
- * Logs the user out by clearing all relevant data from AsyncStorage.
- */
+
+//   Logs the user out by clearing all relevant data from AsyncStorage.
     const logoutUser = async (): Promise<{ success: boolean; message: string }> => {
     try {
-        // Option 1: Remove specific keys
         await AsyncStorage.multiRemove(['userId', 'userEmail', 'userName']);
 
         return {
-        success: true,
-        message: 'Logout successful',
+            success: true,
+            message: 'Logout successful',
         };
     } catch (error) {
         console.error('Logout error:', error);
         return {
-        success: false,
-        message: 'Logout failed. Please try again.',
+            success: false,
+            message: 'Logout failed. Please try again.',
         };
     }
     };
@@ -80,9 +96,43 @@ export default function ProfileScreen() {
         }
     }, []);
 
-    const handleChangePassword = useCallback(() => {
-        Alert.alert('Change Password', 'Navigate to change password screen');
-    }, []);
+    const changePassword = async (
+        email: string,
+        oldPassword: string,
+        newPassword: string
+        ): Promise<{ success: boolean; message: string }> => {
+        try {
+            const response = await fetch(`${config.API.CHANGE_PASSWORD}`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email, oldPassword, newPassword }),
+            });
+
+            const data = await response.json();
+
+            return {
+                success: response.ok,
+                message: data.message || 'Something went wrong.',
+            };
+        } catch (error) {
+                console.error(error);
+            return {
+                success: false,
+                message: 'Something went wrong. Try again.',
+            };
+        }
+        };
+
+
+    const handleChangePassword = async () => {
+        const result = await changePassword(userEmail, currentPassword, newPassword);
+        Alert.alert(result.success ? 'Success' : 'Error', result.message);
+        if (result.success) {
+            setCurrentPassword('');
+            setNewPassword('');
+            setShowPasswordModal(false);
+        }
+    };
 
     const handleLogOut = useCallback(() => {
         Alert.alert(
@@ -124,7 +174,52 @@ export default function ProfileScreen() {
     }
 
     return (
+           
+
         <SafeAreaView style={[styles.container, { backgroundColor: theme.background }]}>
+             {showPasswordModal && (
+                <View style={style.modalOverlay}>
+                    <View style={style.modalContent}>
+                        <Text style={style.modalTitle}>Change Password</Text>
+                        <TextInput
+                            style={style.modalInput}
+                            placeholder="Current Password"
+                            secureTextEntry
+                            value={currentPassword}
+                            onChangeText={setCurrentPassword}
+                        />
+                        <TextInput
+                            style={style.modalInput}
+                            placeholder="New Password"
+                            secureTextEntry
+                            value={newPassword}
+                            onChangeText={setNewPassword}
+                        />
+                        <View style={style.modalButtons}>
+                            <TouchableOpacity
+                                style={[style.modalButton, { backgroundColor: theme.icon }]}
+                                onPress={() => setShowPasswordModal(false)}
+                            >
+                                <Text style={style.modalButtonText}>Cancel</Text>
+                            </TouchableOpacity>
+                            <TouchableOpacity
+                                style={[style.modalButton, { backgroundColor: theme.tint }]}
+                                onPress={async () => {
+                                    const result = await changePassword(userEmail,currentPassword, newPassword);
+                                    Alert.alert(result.success ? 'Success' : 'Error', result.message);
+                                    if (result.success) {
+                                        setCurrentPassword('');
+                                        setNewPassword('');
+                                        setShowPasswordModal(false);
+                                    }
+                                }}
+                            >
+                                <Text style={style.modalButtonText}>Update</Text>
+                            </TouchableOpacity>
+                        </View>
+                    </View>
+                </View>
+                )}
             <StatusBar barStyle={colorScheme === 'dark' ? 'light-content' : 'dark-content'} backgroundColor={theme.tint} />
 
           

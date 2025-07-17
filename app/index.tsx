@@ -9,7 +9,7 @@ export default function Index() {
   if (isBeingDesigned) {
     return (
         <>
-          <Redirect href="/profile"/>
+          <Redirect href="/register"/>
           <Toast />
         </>
     );

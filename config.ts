@@ -14,7 +14,7 @@ export default {
         FACE_REGISTER: (userId: string) => `${BASE_URL}/face/register/${userId}`,
         // CHECK_FACE: (userId: string) => `${BASE_URL}/face/isAvailable/${userId}`,
         AUTH_LOGIN: `${BASE_URL}/auth/login`,
-        CHANGE_PASSWORD: `${BASE_URL}/auth/changePassword`,
+        CHANGE_PASSWORD: `${BASE_URL}/auth/change-password`,
         REGISTER_USER: `${BASE_URL}/auth/register`
 
     }

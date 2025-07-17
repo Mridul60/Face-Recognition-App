@@ -1,5 +1,7 @@
+import bcrypt from 'bcrypt'
 const dotenv = require('dotenv').config({});
-const Employee = require('../../models/Employee'); // Adjust path as needed
+const Employee = require('../../models/Employee'); 
+
 
 const loginService = ({ CustomError, env }) => {
     return async function loginHandler(httpRequest) {
@@ -19,7 +21,8 @@ const loginService = ({ CustomError, env }) => {
 
             const user = results[0];
 
-            if (user.password !== password) {
+            const isMatch = await bcrypt.compare(password,user.password);
+            if (!isMatch) {
                 return CustomError({message: 'Invalid email or password', statusCode: 401}).handle();
             }
 
