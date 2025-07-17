@@ -246,7 +246,10 @@ export default function ProfileScreen() {
                         />
                     </View>
 
-                    <TouchableOpacity
+                    {/*
+                    TODO :- Implement change password with hashing
+                    
+                     <TouchableOpacity
                         style={[styles.settingRow, { backgroundColor: theme.background, borderBottomColor: theme.icon }]}
                         onPress={handleChangePassword}
                         activeOpacity={0.7}
@@ -260,7 +263,7 @@ export default function ProfileScreen() {
                         <View style={styles.chevron}>
                             <Text style={[styles.chevronText, { color: theme.secondaryText }]}>›</Text>
                         </View>
-                    </TouchableOpacity>
+                    </TouchableOpacity> */}
                 </View>
 
                 {/* Account Section */}

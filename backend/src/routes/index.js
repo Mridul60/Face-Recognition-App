@@ -20,6 +20,7 @@ router.post('/auth/register',registerUser)
 // Define proper Multer diskStorage
 const storage = multer.diskStorage({
     destination: function (req, file, cb) {
+        // eslint-disable-next-line no-undef
         cb(null, path.join(__dirname, '../../public/uploads'));
     },
     filename: function (req, file, cb) {
