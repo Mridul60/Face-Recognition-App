@@ -1,4 +1,4 @@
-const pool = require('@/backend/src/config/dbConfig');
+const pool = require('../../config/dbConfig')
 const bcrypt = require('bcrypt');
 
 exports.changePassword = async (req, res) => {
