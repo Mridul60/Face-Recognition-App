@@ -85,7 +85,7 @@ const BiometricScanScreen = () => {
             Animated.loop(
                 Animated.timing(progressAnim, {
                     toValue: 1,
-                    duration: 50000,
+                    duration: 30000,
                     useNativeDriver: false, // width is not transform, so false
                 })
             ).start();

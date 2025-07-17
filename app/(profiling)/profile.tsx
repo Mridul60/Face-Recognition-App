@@ -43,6 +43,28 @@ export default function ProfileScreen() {
         }
     };
 
+/**
+ * Logs the user out by clearing all relevant data from AsyncStorage.
+ */
+    const logoutUser = async (): Promise<{ success: boolean; message: string }> => {
+    try {
+        // Option 1: Remove specific keys
+        await AsyncStorage.multiRemove(['userId', 'userEmail', 'userName']);
+
+        return {
+        success: true,
+        message: 'Logout successful',
+        };
+    } catch (error) {
+        console.error('Logout error:', error);
+        return {
+        success: false,
+        message: 'Logout failed. Please try again.',
+        };
+    }
+    };
+
+
     const toggleBiometric = useCallback(async (value: boolean) => {
         try {
             setBiometricEnabled(value);
@@ -71,8 +93,19 @@ export default function ProfileScreen() {
                 {
                     text: 'Log Out',
                     style: 'destructive',
-                    onPress: () => {
-                        console.log('Logging out...');
+                    onPress: async() => {
+                        const result = await logoutUser();
+                        if (result.success){
+                            console.log('Logging out...');
+                            Alert.alert('Logged Out', result.message,[
+                                {
+                                    text: "OK",
+                                    onPress: () => router.replace('/login')
+                                }
+                            ]);
+                        } else {
+                            Alert.alert('Error',result.message)
+                        }
                     },
                 },
             ]

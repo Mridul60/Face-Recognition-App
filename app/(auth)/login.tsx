@@ -28,15 +28,18 @@ export default function Login() {
   const [isLoading, setIsLoading] = React.useState(false);
   const router = useRouter();
 
+  // Email Validation
   const isValidEmail = (email: string) => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     return emailRegex.test(email);
   };
 
+  // Toggle password 
   const togglePasswordVisibility = () => {
     setShowPassword(!showPassword);
   };
 
+  // Login logic 
   const handleLogin = async () => {
     if (!email || !password) {
       setErrorMessage('Please fill all the fields');
