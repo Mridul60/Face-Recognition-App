@@ -216,7 +216,60 @@ const styles = StyleSheet.create({
         height: '50%',
         borderRadius: 10,
         zIndex: 10,
-    }
+    },
+    faceDetectionOverlay: {
+        position: 'absolute',
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
+        zIndex: 1,
+    },
+    faceBox: {
+        position: 'absolute',
+        borderWidth: 2,
+        borderColor: '#4CAF50',
+        borderRadius: 8,
+        backgroundColor: 'rgba(76, 175, 80, 0.1)',
+    },
+    faceStatusContainer: {
+        marginTop: 10,
+        alignItems: 'center',
+    },
+    faceStatusIndicator: {
+        paddingHorizontal: 12,
+        paddingVertical: 6,
+        borderRadius: 15,
+        opacity: 0.9,
+    },
+    faceStatusText: {
+        color: '#fff',
+        fontSize: 12,
+        fontWeight: 'bold',
+        textAlign: 'center',
+    },
+    errorText: {
+        color: '#fff',
+        textAlign: 'center',
+        fontSize: 16,
+    },
+    // centered: {
+    //     flex: 1,
+    //     justifyContent: 'center',
+    //     alignItems: 'center',
+    //     backgroundColor: '#000',
+    // },
+    progressCircle: {
+        position: 'absolute',
+        width: OVAL_WIDTH,
+        height: OVAL_HEIGHT,
+        borderRadius: OVAL_WIDTH / 2,
+        borderWidth: 5,
+        borderColor: '#4CAF50',
+        borderStyle: 'solid',
+        zIndex: 4,
+    },
+
 
 });
 

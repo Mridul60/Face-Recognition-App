@@ -46,7 +46,8 @@
         {
           "cameraPermission": "Allow $(PRODUCT_NAME) to access your camera"
         }
-      ]
+      ],
+      "react-native-vision-camera"
     ],
     "experiments": {
       "typedRoutes": true
