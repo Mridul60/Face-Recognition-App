@@ -64,7 +64,7 @@ const Dashboard = () => {
         longitudeDelta: 0.01,
     };
 
-    const officeRadius = 10000;
+    const officeRadius = 500;
 
     type LocationType = {
         latitude: number;
@@ -328,6 +328,7 @@ const Dashboard = () => {
             }
 
             // Mark attendance
+            console.log("isPunchedIn: ", isPunchedIn);
             handleMarkYourAttendance(isPunchedIn);
 
             // Success feedback
