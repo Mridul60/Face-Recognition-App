@@ -50,25 +50,54 @@ const styles = StyleSheet.create({
         color: '#1F2937',
     },
     scanArea: {
+        width: OVAL_WIDTH+100,
+        height: OVAL_HEIGHT+100,
+        justifyContent: 'center',
+        alignItems: 'center',
+        borderRadius: OVAL_WIDTH / 2,
+        overflow: 'hidden',
+        position: 'relative',
+    },
+    scanAreaForCamera: {
         width: OVAL_WIDTH,
         height: OVAL_HEIGHT,
         justifyContent: 'center',
         alignItems: 'center',
         backgroundColor: '#fff',
-        borderRadius: OVAL_WIDTH / 2,
+        // backgroundColor: 'red',
+        borderRadius: (OVAL_WIDTH) / 2,
         overflow: 'hidden',
         position: 'relative',
     },
-    pulseOverlay: {
+    ovalProgress: {
         position: 'absolute',
-        width: OVAL_WIDTH - 80,
-        height: OVAL_HEIGHT - 50,
-        borderRadius: 200,
-        borderWidth: 2,
-        borderColor: '#2DD4BF',
-        backgroundColor: 'rgba(45, 212, 191, 0.08)',
-        zIndex: 1,
+        // alignSelf: 'center' ,
+        zIndex: 6
     },
+    countdownTextWrapper: {
+        position: 'absolute',
+        top: '45%',
+        alignSelf: 'center',
+        backgroundColor: 'rgba(0,0,0,0.5)',
+        padding: 10,
+        borderRadius: 50,
+    },
+    countdownText: {
+        color: '#fff',
+        fontSize: 32,
+        fontWeight: 'bold',
+    },
+
+    // pulseOverlay: {
+    //     position: 'absolute',
+    //     width: OVAL_WIDTH - 80,
+    //     height: OVAL_HEIGHT - 50,
+    //     borderRadius: 200,
+    //     borderWidth: 2,
+    //     borderColor: '#2DD4BF',
+    //     backgroundColor: 'rgba(45, 212, 191, 0.08)',
+    //     zIndex: 1,
+    // },
     dottedOval: {
         position: 'absolute',
         width: OVAL_WIDTH - 60,
@@ -78,15 +107,15 @@ const styles = StyleSheet.create({
         borderColor: '#2DD4BF',
         backgroundColor: 'rgba(45, 212, 191, 0.08)',
         borderStyle: 'dotted',
-        zIndex: 2,
+        zIndex: 1,
     },
     ovalBorder: {
         position: 'absolute',
         width: OVAL_WIDTH,
         height: OVAL_HEIGHT,
-        borderRadius: OVAL_WIDTH / 2,
-        borderWidth: 3,
-        borderColor: '#10877d',
+        borderRadius: OVAL_WIDTH,
+        borderWidth: 1,
+        borderColor: 'green',
         zIndex: 3,
     },
     cornerTopLeft: {
@@ -270,6 +299,15 @@ const styles = StyleSheet.create({
         zIndex: 4,
     },
 
+    circularProgressWrapper: {
+        position: 'absolute',
+        top: '50%',
+        left: '50%',
+        transform: [{ translateX: -130 }, { translateY: -130 }],
+        zIndex: 15,
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
 
 });
 

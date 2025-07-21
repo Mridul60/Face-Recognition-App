@@ -11,7 +11,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import Toast from 'react-native-toast-message';
 import config from "../../../config";
 
-export const useBiometricScan = () => {
+export const useBiometricScan = (punchInOrPunchOut: string | string[]) => {
     const progressAnim = useRef(new Animated.Value(0)).current;
     const { hasPermission, requestPermission } = useCameraPermission();
     const device = useCameraDevice('front');
@@ -20,7 +20,6 @@ export const useBiometricScan = () => {
     const [faceExists, setFaceExists] = useState<boolean | null>(null);
     const [isProcessing, setIsProcessing] = useState(false);
     const [capturedPhotoUri, setCapturedPhotoUri] = useState<string | null>(null);
-    const {punchInOrPunchOut} = useLocalSearchParams();
 
     // Status message states
     const [baseStatusText, setBaseStatusText] = useState<string | null>(null);
@@ -43,6 +42,7 @@ export const useBiometricScan = () => {
             try {
                 const res = await fetch(config.API.IS_AVAILABLE(userId));
                 const data = await res.json();
+                console.log("data for faceexists: ", data);
                 setFaceExists(data?.body?.exists === true);
             } catch (err) {
                 Alert.alert('Error', 'Could not check facial data.');
@@ -97,26 +97,17 @@ export const useBiometricScan = () => {
 
     const handleScan = async (faces: any[], imageUri: string) => {
         if (isProcessing) return;
-
-        // // Check if face is detected before proceeding
-        // if (faces.length === 0) {
-        //     Alert.alert('No Face Detected', 'Please position your face in the frame and try again');
-        //     return;
-        // }
+        if (faces.length === 0) {
+            Alert.alert('No Face Detected', 'Please position your face in the frame and try again');
+            return;
+        }
 
         setIsProcessing(true);
+        console.log("faceExists", faceExists);
         setBaseStatusText(faceExists ? 'Verifying' : 'Registering');
         playStatusSequence(faceExists ? "Verifying face..." : "Registering face...");
 
         try {
-            // // if (!cameraRef.current) return;
-            //
-            // // const photo = await cameraRef.current.takePhoto({});
-            // const photo = faces[0]
-            //
-            // const imageUri = `file://${photo.path}`;
-            setCapturedPhotoUri(imageUri);
-
             const userId = await AsyncStorage.getItem('userId');
             if (!userId) {
                 Alert.alert('Error', 'Camera or user ID unavailable');
@@ -130,6 +121,7 @@ export const useBiometricScan = () => {
                 type: 'image/jpg',
             } as any);
 
+            console.log(punchInOrPunchOut)
             const endpoint = faceExists
                 ? config.API.FACE_MATCH(userId, punchInOrPunchOut)
                 : config.API.FACE_REGISTER(userId);
