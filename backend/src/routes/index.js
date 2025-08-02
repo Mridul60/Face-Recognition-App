@@ -7,14 +7,14 @@ const {punchHandler, getAttendanceHandler, getAttendanceHistoryHandler} = requir
 const {adaptRequest, sendResponse} = require('../util/http');
 const router = express.Router();
 
-// Change password 
-const { registerUser, changePassword } = require('../modules/auth/authController')
-
-// Change-password route
-router.post('/auth/change-password',changePassword);
-
-// Register route
-router.post('/auth/register',registerUser)
+// // Change password
+// const { registerUser, changePassword } = require('../modules/auth/authController')
+//
+// // Change-password route
+// router.post('/auth/change-password',changePassword);
+//
+// // Register route
+// router.post('/auth/register',registerUser)
 
 
 // Define proper Multer diskStorage

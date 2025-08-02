@@ -89,6 +89,7 @@ contentContainer: {
   passwordInput: {
     flex: 1,
     fontSize: Math.max(16, width * 0.04),
+    color: 'black'
   },
 
   showHideButton: {

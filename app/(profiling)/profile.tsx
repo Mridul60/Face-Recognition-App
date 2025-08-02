@@ -147,12 +147,13 @@ export default function ProfileScreen() {
                         const result = await logoutUser();
                         if (result.success){
                             console.log('Logging out...');
-                            Alert.alert('Logged Out', result.message,[
-                                {
-                                    text: "OK",
-                                    onPress: () => router.replace('/login')
-                                }
-                            ]);
+                            router.replace('/login')
+                            // Alert.alert('Logged Out', result.message,[
+                            //     {
+                            //         text: "OK",
+                            //         onPress: () => router.replace('/login')
+                            //     }
+                            // ]);
                         } else {
                             Alert.alert('Error',result.message)
                         }
