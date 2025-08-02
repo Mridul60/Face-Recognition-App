@@ -27,7 +27,7 @@ export const useCurrentLocation = (
             return;
         }
 
-        const location = await getCurrentPositionAsync({ accuracy: Accuracy.Balanced });
+        const location = await getCurrentPositionAsync({ accuracy: Accuracy.High });
         const { latitude, longitude }: LocationObjectCoords = location.coords;
 
         const newLocation: LocationType = {

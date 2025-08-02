@@ -95,6 +95,7 @@ export default function Login() {
           <TextInput
             style={styles.input}
             placeholder="Email"
+            placeholderTextColor='black'
             value={email}
             onChangeText={setEmail}
             keyboardType="email-address"
@@ -105,6 +106,7 @@ export default function Login() {
             <TextInput
               style={styles.passwordInput}
               placeholder="Password"
+              placeholderTextColor='black'
               value={password}
               onChangeText={setPassword}
               secureTextEntry={!showPassword}
@@ -114,9 +116,9 @@ export default function Login() {
             </TouchableOpacity>
           </View>
 
-          <TouchableOpacity style={styles.forgotPassword}>
-            <Text style={styles.forgotText}>Forgot Password?</Text>
-          </TouchableOpacity>
+          {/*<TouchableOpacity style={styles.forgotPassword}>*/}
+          {/*  <Text style={styles.forgotText}>Forgot Password?</Text>*/}
+          {/*</TouchableOpacity>*/}
 
           {errorMessage !== '' && (
             <Text style={styles.errorText}>{errorMessage}</Text>
